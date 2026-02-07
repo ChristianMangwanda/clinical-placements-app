@@ -80,57 +80,41 @@ src/
 └── __tests__/             # Test suite
 ```
 
-## Installation
+## Environment Variables
+
+The application requires the following environment variables:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `DB_HOST` | MySQL database host | Yes |
+| `DB_PORT` | MySQL database port | Yes |
+| `DB_USER` | Database username | Yes |
+| `DB_PASSWORD` | Database password | Yes |
+| `DB_NAME` | Database name | Yes |
+| `ANTHROPIC_API_KEY` | Claude API key for AI chat | No |
+
+**Production**: Configure these in the Vercel dashboard under Project Settings > Environment Variables.
+
+**Local Development**: Copy `.env.example` to `.env.local` and fill in the values.
+
+## Local Development
 
 ### Prerequisites
 - Node.js 18 or higher
 - npm, yarn, or pnpm
-- MySQL database access credentials
 
 ### Setup
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/[organization]/clinical-placements-app.git
-   cd clinical-placements-app
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Create the environment configuration:
-   ```bash
-   cp .env.example .env.local
-   ```
-
-4. Edit `.env.local` with the appropriate database credentials and API keys (see Environment Variables section)
-
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-6. Access the application at `http://localhost:3000`
-
-## Environment Variables
-
-The application requires the following environment variables in `.env.local`:
-
-```env
-# Database Configuration
-DB_HOST=mysql.clarksonmsda.org
-DB_PORT=3306
-DB_USER=[database_username]
-DB_PASSWORD=[database_password]
-DB_NAME=[database_name]
-
-# AI Chatbot (Optional)
-ANTHROPIC_API_KEY=[anthropic_api_key]
+```bash
+git clone https://github.com/[organization]/clinical-placements-app.git
+cd clinical-placements-app
+npm install
+cp .env.example .env.local
+# Edit .env.local with credentials
+npm run dev
 ```
 
-**Security Note**: The `.env.local` file is excluded from version control via `.gitignore`. Credentials should never be committed to the repository.
+Access the application at `http://localhost:3000`
 
 ## Database Schema
 
