@@ -1,26 +1,164 @@
 @import "tailwindcss";
 
+/* Clarkson University Branding */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Primary colors */
+  --green: #0D433B;
+  --green-deep: #092E28;
+  --green-light: #145C52;
+  --gold: #FAC922;
+  --gold-dim: rgba(250, 201, 34, 0.15);
+  --gold-glow: rgba(250, 201, 34, 0.4);
+  --white: #FFFFFE;
+  --off-white: #F4F2ED;
+
+  /* Text colors */
+  --text-muted: rgba(255, 255, 254, 0.65);
+  --text-light: rgba(255, 255, 254, 0.85);
+
+  /* Borders and shadows */
+  --soft-border: 1px solid rgba(250, 201, 34, 0.08);
+  --card-shadow: 0 15px 45px rgba(0, 0, 0, 0.25);
+
+  /* Hero gradient */
+  --hero-gradient: radial-gradient(ellipse at 20% 50%, rgba(20, 92, 82, 0.4) 0%, transparent 60%),
+                   radial-gradient(ellipse at 80% 30%, rgba(250, 201, 34, 0.08) 0%, transparent 50%),
+                   var(--green-deep);
+
+  /* App defaults */
+  --background: var(--green-deep);
+  --foreground: var(--white);
 }
 
 @theme inline {
+  /* Clarkson colors */
+  --color-green: var(--green);
+  --color-green-deep: var(--green-deep);
+  --color-green-light: var(--green-light);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-gold-glow: var(--gold-glow);
+  --color-white: var(--white);
+  --color-off-white: var(--off-white);
+  --color-text-muted: var(--text-muted);
+  --color-text-light: var(--text-light);
+
+  /* Background and foreground */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Fonts */
+  --font-heading: var(--font-playfair);
+  --font-body: var(--font-source-sans);
+
+  /* Shadows */
+  --shadow-card: var(--card-shadow);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base styles */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif);
+  min-height: 100vh;
+}
+
+/* Leaflet map container must have explicit height */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  background: var(--green-deep);
+}
+
+/* Custom scrollbar for dark theme */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--green-deep);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--green-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
+/* Gold accent borders */
+.border-gold-soft {
+  border: 1px solid rgba(250, 201, 34, 0.08);
+}
+
+.border-gold-medium {
+  border: 1px solid rgba(250, 201, 34, 0.2);
+}
+
+/* Gradient backgrounds */
+.bg-hero-gradient {
+  background: var(--hero-gradient);
+}
+
+/* Button styles matching landing page */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.9rem 2rem;
+  background: var(--gold);
+  color: var(--green-deep);
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(250, 201, 34, 0.25);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.9rem 2rem;
+  background: transparent;
+  color: var(--white);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 254, 0.2);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  border-color: var(--white);
+  background: rgba(255, 255, 254, 0.05);
+}
+
+/* Card styles matching landing page */
+.card {
+  background: rgba(9, 46, 40, 0.65);
+  border: 1px solid rgba(250, 201, 34, 0.08);
+  border-radius: 3px;
+  box-shadow: var(--card-shadow);
+}
+
+.card:hover {
+  border-color: rgba(250, 201, 34, 0.2);
 }

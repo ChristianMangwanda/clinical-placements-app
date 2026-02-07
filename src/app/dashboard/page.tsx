@@ -1,0 +1,223 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
+import MapWrapper from "@/components/MapWrapper";
+import DataTable from "@/components/DataTable";
+import ChatPanel from "@/components/ChatPanel";
+import type { Layer, LayerVisibility, Profession, SearchResult } from "@/lib/types";
+
+export default function Home() {
+  // Layer state
+  const [layers, setLayers] = useState<Layer[]>([]);
+  const [layerVisibility, setLayerVisibility] = useState<LayerVisibility>({});
+  const [layersLoading, setLayersLoading] = useState(true);
+
+  // Filter state
+  const [stateFilter, setStateFilter] = useState<string[]>([]);
+  const [professionFilter, setProfessionFilter] = useState<Profession | null>(null);
+
+  // Map state
+  const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Data table state
+  const [tableData, setTableData] = useState<SearchResult[]>([]);
+  const [tableLoading, setTableLoading] = useState(false);
+
+  // Fetch layers on mount
+  useEffect(() => {
+    async function fetchLayers() {
+      try {
+        const response = await fetch("/api/layers");
+        const result = await response.json();
+
+        if (result.success) {
+          setLayers(result.data);
+
+          // Initialize visibility from default_visible
+          const initialVisibility: LayerVisibility = {};
+          result.data.forEach((layer: Layer) => {
+            initialVisibility[layer.layer_key] = layer.default_visible;
+          });
+          setLayerVisibility(initialVisibility);
+        }
+      } catch (error) {
+        console.error("Error fetching layers:", error);
+      } finally {
+        setLayersLoading(false);
+      }
+    }
+
+    fetchLayers();
+  }, []);
+
+  // Load saved layer visibility from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("layerVisibility");
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        setLayerVisibility((prev) => ({ ...prev, ...parsed }));
+      } catch {
+        // Ignore parse errors
+      }
+    }
+  }, []);
+
+  // Save layer visibility to localStorage
+  useEffect(() => {
+    if (Object.keys(layerVisibility).length > 0) {
+      localStorage.setItem("layerVisibility", JSON.stringify(layerVisibility));
+    }
+  }, [layerVisibility]);
+
+  // Fetch table data when filters change
+  const fetchTableData = useCallback(async () => {
+    setTableLoading(true);
+    try {
+      // Get visible layers
+      const visibleLayers = Object.entries(layerVisibility)
+        .filter(([, visible]) => visible)
+        .map(([key]) => key);
+
+      if (visibleLayers.length === 0) {
+        setTableData([]);
+        return;
+      }
+
+      // When state filter is applied, fetch from all visible layers via /api/sites
+      if (stateFilter.length > 0) {
+        const allResults: SearchResult[] = [];
+
+        // Fetch from each visible layer in parallel
+        const fetchPromises = visibleLayers.map(async (layerKey) => {
+          const url = `/api/sites?layer=${layerKey}&states=${stateFilter.join(",")}`;
+          const response = await fetch(url);
+          const result = await response.json();
+
+          if (result.success && result.data?.features) {
+            return result.data.features.map(
+              (f: { properties: { id: number; name: string; layer_key: string; state: string }; geometry: { coordinates: [number, number] } }) => ({
+                id: f.properties.id,
+                name: f.properties.name,
+                layer_key: f.properties.layer_key,
+                state: f.properties.state,
+                latitude: f.geometry.coordinates[1],
+                longitude: f.geometry.coordinates[0],
+              })
+            );
+          }
+          return [];
+        });
+
+        const resultsArrays = await Promise.all(fetchPromises);
+        resultsArrays.forEach((results) => allResults.push(...results));
+
+        setTableData(allResults);
+      } else {
+        // No state filter - use search endpoint
+        const url = `/api/search?q=.&layers=${visibleLayers.join(",")}`;
+        const response = await fetch(url);
+        const result = await response.json();
+
+        if (result.success) {
+          setTableData(result.data || []);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching table data:", error);
+    } finally {
+      setTableLoading(false);
+    }
+  }, [layerVisibility, stateFilter]);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      fetchTableData();
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [fetchTableData]);
+
+  // Handlers
+  const handleLayerToggle = (layerKey: string) => {
+    setLayerVisibility((prev) => ({
+      ...prev,
+      [layerKey]: !prev[layerKey],
+    }));
+  };
+
+  const handleClearFilters = () => {
+    setStateFilter([]);
+    setProfessionFilter(null);
+  };
+
+  const handleSearchSelect = (result: SearchResult) => {
+    setFlyToLocation({ lat: result.latitude, lng: result.longitude });
+  };
+
+  const handleRowClick = (item: SearchResult) => {
+    setFlyToLocation({ lat: item.latitude, lng: item.longitude });
+  };
+
+  // Get layer colors for data table
+  const layerColors: Record<string, string> = {};
+  layers.forEach((layer) => {
+    layerColors[layer.layer_key] = layer.color || "#E74C3C";
+  });
+
+  if (layersLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-green-deep">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-gold/30 border-t-gold rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-text-light">Loading Clinical Placements Database...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex flex-col bg-green-deep overflow-hidden">
+      <Header />
+
+      <div className="flex-1 flex overflow-hidden">
+        <Sidebar
+          layers={layers}
+          layerVisibility={layerVisibility}
+          onLayerToggle={handleLayerToggle}
+          stateFilter={stateFilter}
+          professionFilter={professionFilter}
+          onStateChange={setStateFilter}
+          onProfessionChange={setProfessionFilter}
+          onClearFilters={handleClearFilters}
+          onSearchSelect={handleSearchSelect}
+        />
+
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Map */}
+          <div className="flex-1 relative">
+            <MapWrapper
+              layers={layers}
+              layerVisibility={layerVisibility}
+              stateFilter={stateFilter}
+              flyToLocation={flyToLocation}
+            />
+          </div>
+
+          {/* Data Table */}
+          <DataTable
+            data={tableData}
+            loading={tableLoading}
+            onRowClick={handleRowClick}
+            layerColors={layerColors}
+          />
+        </div>
+      </div>
+
+      {/* Chat Panel - bottom right floating */}
+      <ChatPanel />
+    </div>
+  );
+}
