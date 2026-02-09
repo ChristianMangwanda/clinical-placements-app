@@ -8,53 +8,53 @@ const anthropic = new Anthropic({
 
 // Database schema for the AI to understand
 const DATABASE_SCHEMA = `
-Database: mangwazc_Clinical Database (MySQL)
+Database: Clinical Placements Database (PostgreSQL on Supabase)
 
 Tables:
 
 1. hrsa_sites (81,477 rows) - Healthcare providers and clinical sites from HRSA database
-   - id (INT PK)
+   - id (SERIAL PK)
    - site_name (VARCHAR 500)
    - state (CHAR 2) - US state code
-   - longitude (DECIMAL 11,7)
-   - latitude (DECIMAL 10,7)
+   - longitude (NUMERIC 11,7)
+   - latitude (NUMERIC 10,7)
    - source (VARCHAR 50)
 
 2. schools (858 rows) - Universities offering PT, OT, PA programs. One row per program.
-   - id (INT PK)
+   - id (SERIAL PK)
    - program_row_id (INT)
    - institution_name (VARCHAR 300)
    - campus_name (VARCHAR 200, nullable)
    - state (CHAR 2)
-   - profession (ENUM 'PT','OT','PA') - Physical Therapy, Occupational Therapy, Physician Assistant
+   - profession (profession_type: 'PT','OT','PA') - Physical Therapy, Occupational Therapy, Physician Assistant
    - program_name (VARCHAR 200)
    - accreditation_body (VARCHAR 20)
    - accreditation_status (VARCHAR 200)
    - address (VARCHAR 500)
-   - longitude, latitude (DECIMAL)
+   - longitude, latitude (NUMERIC)
 
 3. post_secondary_schools (6,812 rows) - All post-secondary institutions in the USA
-   - id (INT PK)
+   - id (SERIAL PK)
    - original_id (INT)
    - institution_name (VARCHAR 300)
    - state (CHAR 2)
-   - latitude, longitude (DECIMAL)
+   - latitude, longitude (NUMERIC)
 
 4. military_sites (824 rows) - US military installations
-   - id (INT PK)
+   - id (SERIAL PK)
    - name (VARCHAR 300)
    - state (CHAR 2)
    - component (VARCHAR 50) - e.g., 'usa', 'usaf', 'armyNationalGuard'
-   - latitude, longitude (DECIMAL)
+   - latitude, longitude (NUMERIC)
 
 5. native_american_reserves (693 rows) - Native American reservation locations
-   - id (INT PK)
+   - id (SERIAL PK)
    - name (VARCHAR 500)
    - state (CHAR 2)
-   - latitude, longitude (DECIMAL)
+   - latitude, longitude (NUMERIC)
 
 6. notes (variable) - Coordinator annotations
-   - id (INT PK)
+   - id (SERIAL PK)
    - layer_key (VARCHAR 50) - references table name
    - entity_id (INT) - ID of the entity being noted
    - state (CHAR 2) - for state-level notes
@@ -76,11 +76,12 @@ When a user asks a question, you should:
 
 Important rules:
 - ONLY generate SELECT statements - never INSERT, UPDATE, DELETE, DROP, or any data-modifying queries
-- Always use backticks around table and column names
+- Use standard PostgreSQL syntax (no backticks - use double quotes for identifiers if needed, or just plain names)
 - Limit results to 1000 rows max
 - For geographic queries, use latitude/longitude
-- The database name has a space, but you don't need to include it - just use table names
 - State codes are 2-letter uppercase (e.g., 'NY', 'CA', 'TX')
+- For the profession column in schools, use 'PT', 'OT', or 'PA' as text values
+- Use ILIKE for case-insensitive pattern matching instead of LIKE
 
 If the question doesn't require a database query (e.g., general questions, greetings),
 just respond conversationally without SQL.

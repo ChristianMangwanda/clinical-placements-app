@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { query, execute } from "@/lib/db";
+import { query, execute, queryOne } from "@/lib/db";
 import type { Note } from "@/lib/types";
 
 // GET - Fetch notes
@@ -10,21 +10,22 @@ export async function GET(request: NextRequest) {
     const entityId = searchParams.get("entity_id");
     const state = searchParams.get("state");
 
-    let sql = "SELECT * FROM `notes` WHERE 1=1";
+    let sql = "SELECT * FROM notes WHERE 1=1";
     const params: unknown[] = [];
+    let paramIndex = 1;
 
     if (layerKey) {
-      sql += " AND layer_key = ?";
+      sql += ` AND layer_key = $${paramIndex++}`;
       params.push(layerKey);
     }
 
     if (entityId) {
-      sql += " AND entity_id = ?";
+      sql += ` AND entity_id = $${paramIndex++}`;
       params.push(parseInt(entityId, 10));
     }
 
     if (state) {
-      sql += " AND state = ?";
+      sql += ` AND state = $${paramIndex++}`;
       params.push(state.toUpperCase());
     }
 
@@ -58,12 +59,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // PostgreSQL uses RETURNING to get the inserted row
     const sql = `
-      INSERT INTO \`notes\` (layer_key, entity_id, state, note_text, author)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO notes (layer_key, entity_id, state, note_text, author)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id
     `;
 
-    const result = await execute(sql, [
+    const result = await queryOne<{ id: number }>(sql, [
       layer_key || null,
       entity_id || null,
       state ? state.toUpperCase() : null,
@@ -74,7 +77,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        id: result.insertId,
+        id: result?.id,
         layer_key,
         entity_id,
         state,
@@ -111,10 +114,10 @@ export async function PATCH(request: NextRequest) {
       );
     }
 
-    const sql = "UPDATE `notes` SET note_text = ? WHERE id = ?";
+    const sql = "UPDATE notes SET note_text = $1 WHERE id = $2";
     const result = await execute(sql, [note_text.trim(), id]);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
         { status: 404 }
@@ -147,10 +150,10 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const sql = "DELETE FROM `notes` WHERE id = ?";
+    const sql = "DELETE FROM notes WHERE id = $1";
     const result = await execute(sql, [parseInt(id, 10)]);
 
-    if (result.affectedRows === 0) {
+    if (result.rowCount === 0) {
       return NextResponse.json(
         { success: false, error: "Note not found" },
         { status: 404 }

@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     // Get layer metadata to find the table name
     const layer = await queryOne<Layer>(
-      "SELECT * FROM `layers` WHERE `layer_key` = ?",
+      "SELECT * FROM layers WHERE layer_key = $1",
       [layerKey]
     );
 
@@ -52,18 +52,20 @@ export async function GET(request: NextRequest) {
       ? `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude, profession FROM ${escapeId(tableName)} WHERE 1=1`
       : `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude FROM ${escapeId(tableName)} WHERE 1=1`;
     const params: unknown[] = [];
+    let paramIndex = 1;
 
     // State filter - handle both single state and multiple states
     if (states) {
       // Multiple states (comma-separated)
       const stateList = states.split(",").map((s) => s.trim().toUpperCase()).filter(Boolean);
       if (stateList.length > 0) {
-        sql += ` AND state IN (${stateList.map(() => "?").join(", ")})`;
+        const placeholders = stateList.map(() => `$${paramIndex++}`).join(", ");
+        sql += ` AND state IN (${placeholders})`;
         params.push(...stateList);
       }
     } else if (state) {
       // Single state (legacy support)
-      sql += " AND state = ?";
+      sql += ` AND state = $${paramIndex++}`;
       params.push(state.toUpperCase());
     }
 
@@ -71,7 +73,7 @@ export async function GET(request: NextRequest) {
     if (boundsParam) {
       const bounds = parseBounds(boundsParam);
       if (bounds) {
-        sql += " AND latitude BETWEEN ? AND ? AND longitude BETWEEN ? AND ?";
+        sql += ` AND latitude BETWEEN $${paramIndex++} AND $${paramIndex++} AND longitude BETWEEN $${paramIndex++} AND $${paramIndex++}`;
         params.push(bounds.minLat, bounds.maxLat, bounds.minLng, bounds.maxLng);
       }
     }

@@ -1,45 +1,61 @@
-import mysql from "mysql2/promise";
+import { Pool, QueryResult, QueryResultRow } from "pg";
 
 // Database configuration from environment variables
-const dbConfig = {
-  host: process.env.DB_HOST || "mysql.clarksonmsda.org",
-  port: parseInt(process.env.DB_PORT || "3306", 10),
-  user: process.env.DB_USER || "mangwazc",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "mangwazc_Clinical Database",
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  enableKeepAlive: true,
-  keepAliveInitialDelay: 0,
-};
+// Supabase provides a DATABASE_URL connection string
+const connectionString = process.env.DATABASE_URL;
+
+// Fallback to individual env vars if DATABASE_URL not set
+const poolConfig = connectionString
+  ? {
+      connectionString,
+      ssl: { rejectUnauthorized: false },
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    }
+  : {
+      host: process.env.DB_HOST || "localhost",
+      port: parseInt(process.env.DB_PORT || "5432", 10),
+      user: process.env.DB_USER || "postgres",
+      password: process.env.DB_PASSWORD || "",
+      database: process.env.DB_NAME || "postgres",
+      ssl: { rejectUnauthorized: false },
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 10000,
+    };
 
 // Create a connection pool (singleton pattern for serverless)
-let pool: mysql.Pool | null = null;
+let pool: Pool | null = null;
 
-export function getPool(): mysql.Pool {
+export function getPool(): Pool {
   if (!pool) {
-    pool = mysql.createPool(dbConfig);
+    pool = new Pool(poolConfig);
+
+    // Handle pool errors
+    pool.on("error", (err) => {
+      console.error("Unexpected error on idle client", err);
+    });
   }
   return pool;
 }
 
 // Helper function for executing queries with automatic connection management
-export async function query<T = unknown>(
+export async function query<T extends QueryResultRow = QueryResultRow>(
   sql: string,
   params?: unknown[]
 ): Promise<T[]> {
-  const connection = await getPool().getConnection();
+  const client = await getPool().connect();
   try {
-    const [rows] = await connection.execute(sql, params);
-    return rows as T[];
+    const result: QueryResult<T> = await client.query(sql, params);
+    return result.rows;
   } finally {
-    connection.release();
+    client.release();
   }
 }
 
 // Helper for single row queries
-export async function queryOne<T = unknown>(
+export async function queryOne<T extends QueryResultRow = QueryResultRow>(
   sql: string,
   params?: unknown[]
 ): Promise<T | null> {
@@ -47,26 +63,35 @@ export async function queryOne<T = unknown>(
   return rows.length > 0 ? rows[0] : null;
 }
 
+// Result type for INSERT/UPDATE/DELETE operations
+export interface ExecuteResult {
+  rowCount: number | null;
+  command: string;
+}
+
 // Helper for INSERT/UPDATE/DELETE operations
 export async function execute(
   sql: string,
   params?: unknown[]
-): Promise<mysql.ResultSetHeader> {
-  const connection = await getPool().getConnection();
+): Promise<ExecuteResult> {
+  const client = await getPool().connect();
   try {
-    const [result] = await connection.execute(sql, params);
-    return result as mysql.ResultSetHeader;
+    const result = await client.query(sql, params);
+    return {
+      rowCount: result.rowCount,
+      command: result.command,
+    };
   } finally {
-    connection.release();
+    client.release();
   }
 }
 
 // Test database connection
 export async function testConnection(): Promise<boolean> {
   try {
-    const connection = await getPool().getConnection();
-    await connection.ping();
-    connection.release();
+    const client = await getPool().connect();
+    await client.query("SELECT 1");
+    client.release();
     return true;
   } catch (error) {
     console.error("Database connection failed:", error);
@@ -75,7 +100,7 @@ export async function testConnection(): Promise<boolean> {
 }
 
 // Escape identifiers (table/column names) for dynamic queries
-// Note: The database name has a space, so always use backticks
+// PostgreSQL uses double quotes for identifiers
 export function escapeId(identifier: string): string {
-  return `\`${identifier.replace(/`/g, "``")}\``;
+  return `"${identifier.replace(/"/g, '""')}"`;
 }

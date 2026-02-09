@@ -70,14 +70,14 @@ export async function GET(request: NextRequest) {
 
 async function searchLayer(layerKey: string, searchTerm: string): Promise<SearchResult[]> {
   let sql = "";
-  const params = [searchTerm];
+  const params: string[] = [searchTerm];
 
   switch (layerKey) {
     case "hrsa_sites":
       sql = `
         SELECT id, site_name as name, 'hrsa_sites' as layer_key, state, latitude, longitude
-        FROM \`hrsa_sites\`
-        WHERE site_name LIKE ?
+        FROM hrsa_sites
+        WHERE site_name ILIKE $1
         LIMIT 20
       `;
       break;
@@ -85,8 +85,8 @@ async function searchLayer(layerKey: string, searchTerm: string): Promise<Search
     case "schools":
       sql = `
         SELECT id, institution_name as name, 'schools' as layer_key, state, latitude, longitude
-        FROM \`schools\`
-        WHERE institution_name LIKE ? OR program_name LIKE ?
+        FROM schools
+        WHERE institution_name ILIKE $1 OR program_name ILIKE $2
         LIMIT 20
       `;
       params.push(searchTerm);
@@ -95,8 +95,8 @@ async function searchLayer(layerKey: string, searchTerm: string): Promise<Search
     case "post_secondary_schools":
       sql = `
         SELECT id, institution_name as name, 'post_secondary_schools' as layer_key, state, latitude, longitude
-        FROM \`post_secondary_schools\`
-        WHERE institution_name LIKE ?
+        FROM post_secondary_schools
+        WHERE institution_name ILIKE $1
         LIMIT 20
       `;
       break;
@@ -104,8 +104,8 @@ async function searchLayer(layerKey: string, searchTerm: string): Promise<Search
     case "military_sites":
       sql = `
         SELECT id, name, 'military_sites' as layer_key, state, latitude, longitude
-        FROM \`military_sites\`
-        WHERE name LIKE ?
+        FROM military_sites
+        WHERE name ILIKE $1
         LIMIT 20
       `;
       break;
@@ -113,8 +113,8 @@ async function searchLayer(layerKey: string, searchTerm: string): Promise<Search
     case "native_american_reserves":
       sql = `
         SELECT id, name, 'native_american_reserves' as layer_key, state, latitude, longitude
-        FROM \`native_american_reserves\`
-        WHERE name LIKE ?
+        FROM native_american_reserves
+        WHERE name ILIKE $1
         LIMIT 20
       `;
       break;

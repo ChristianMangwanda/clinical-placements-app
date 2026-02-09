@@ -49,7 +49,7 @@ The application aggregates data from five distinct sources:
 | Language | TypeScript |
 | Styling | Tailwind CSS |
 | Map | React Leaflet + Marker Clustering |
-| Database | MySQL |
+| Database | PostgreSQL (Supabase) |
 | AI | Anthropic Claude API |
 | Testing | Jest + React Testing Library |
 | Deployment | Vercel |
@@ -75,7 +75,7 @@ src/
 │   ├── MapClient.tsx      # Leaflet map component
 │   └── NotesPanel.tsx     # Site annotations
 ├── lib/
-│   ├── db.ts              # MySQL connection pool
+│   ├── db.ts              # PostgreSQL connection pool
 │   └── types.ts           # TypeScript interfaces
 └── __tests__/             # Test suite
 ```
@@ -86,11 +86,7 @@ The application requires the following environment variables:
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `DB_HOST` | MySQL database host | Yes |
-| `DB_PORT` | MySQL database port | Yes |
-| `DB_USER` | Database username | Yes |
-| `DB_PASSWORD` | Database password | Yes |
-| `DB_NAME` | Database name | Yes |
+| `DATABASE_URL` | Supabase PostgreSQL connection string | Yes |
 | `ANTHROPIC_API_KEY` | Claude API key for AI chat | No |
 
 **Production**: Configure these in the Vercel dashboard under Project Settings > Environment Variables.
@@ -110,32 +106,60 @@ git clone https://github.com/[organization]/clinical-placements-app.git
 cd clinical-placements-app
 npm install
 cp .env.example .env.local
-# Edit .env.local with credentials
+# Edit .env.local with Supabase credentials
 npm run dev
 ```
 
 Access the application at `http://localhost:3000`
 
+## Database Setup (Supabase)
+
+### 1. Create a Supabase Project
+1. Go to [supabase.com](https://supabase.com) and create a new project
+2. Wait for the project to be provisioned
+
+### 2. Run the Schema Migration
+1. Go to the SQL Editor in your Supabase dashboard
+2. Copy the contents of `supabase_schema.sql` and run it
+3. This creates all tables, indexes, and seeds the layers table
+
+### 3. Import Data
+```bash
+# Install Python dependencies
+pip install psycopg2-binary pandas openpyxl
+
+# Set the database URL
+export DATABASE_URL="postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres"
+
+# Run the import script
+python import_data_supabase.py
+```
+
+### 4. Get Connection String
+1. Go to Settings > Database in your Supabase dashboard
+2. Copy the "Connection string" (URI format)
+3. Add it to your `.env.local` as `DATABASE_URL`
+
 ## Database Schema
 
-The application connects to a MySQL database containing the following tables:
+The application connects to a PostgreSQL database containing the following tables:
 
 | Table | Description | Approximate Records |
 |-------|-------------|---------------------|
 | `layers` | Layer metadata and display configuration | 5 |
 | `hrsa_sites` | HRSA healthcare facilities | 81,000 |
-| `schools` | PT/OT/PA educational programs | 1,500 |
-| `post_secondary_schools` | Post-secondary institutions | 7,000 |
-| `military_sites` | Military installations | 400 |
-| `native_american_reserves` | Native American reservations | 500 |
+| `schools` | PT/OT/PA educational programs | 858 |
+| `post_secondary_schools` | Post-secondary institutions | 6,812 |
+| `military_sites` | Military installations | 824 |
+| `native_american_reserves` | Native American reservations | 693 |
 | `notes` | User annotations for sites | Variable |
 
 ### Common Table Columns
-- `id` - Primary key (integer)
+- `id` - Primary key (serial)
 - `name` - Site/institution name (varchar)
 - `state` - Two-letter state code (char)
-- `latitude` - Geographic latitude (decimal)
-- `longitude` - Geographic longitude (decimal)
+- `latitude` - Geographic latitude (numeric)
+- `longitude` - Geographic longitude (numeric)
 
 ## Available Scripts
 
@@ -155,11 +179,7 @@ The application connects to a MySQL database containing the following tables:
 1. Push the repository to GitHub
 2. Import the project in [Vercel](https://vercel.com)
 3. Configure the following environment variables in the Vercel dashboard:
-   - `DB_HOST`
-   - `DB_PORT`
-   - `DB_USER`
-   - `DB_PASSWORD`
-   - `DB_NAME`
+   - `DATABASE_URL` (Supabase connection string)
    - `ANTHROPIC_API_KEY` (if using AI chat feature)
 4. Deploy
 
@@ -223,4 +243,4 @@ For technical support or questions, contact the Clarkson University MSDA program
 
 ---
 
-Built with Next.js | Deployed on Vercel
+Built with Next.js | Deployed on Vercel | Database by Supabase

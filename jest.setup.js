@@ -1,4 +1,9 @@
 import "@testing-library/jest-dom";
+import { TextEncoder, TextDecoder } from "util";
+
+// Polyfill for pg library
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
 
 // Mock next/navigation
 jest.mock("next/navigation", () => ({
