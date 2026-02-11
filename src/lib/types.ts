@@ -131,12 +131,23 @@ export interface ApiResponse<T> {
   error?: string;
 }
 
+// Map point for AI query result highlights
+export interface MapPoint {
+  lat: number;
+  lng: number;
+  name: string;
+  label?: string;
+  layer?: string;
+}
+
 // Chat message types
 export interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   content: string;
   sql?: string;
+  mapPoints?: MapPoint[];
+  rowCount?: number;
   timestamp: Date;
 }
 

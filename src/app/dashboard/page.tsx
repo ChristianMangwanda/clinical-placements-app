@@ -6,7 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import MapWrapper from "@/components/MapWrapper";
 import DataTable from "@/components/DataTable";
 import ChatPanel from "@/components/ChatPanel";
-import type { Layer, LayerVisibility, Profession, SearchResult } from "@/lib/types";
+import type { Layer, LayerVisibility, Profession, SearchResult, MapPoint } from "@/lib/types";
 
 export default function Home() {
   // Layer state
@@ -20,6 +20,14 @@ export default function Home() {
 
   // Map state
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
+
+  // AI highlight state
+  const [highlightPoints, setHighlightPoints] = useState<MapPoint[]>([]);
+
+  // AI mode state - for toggling layers and showing AI results in table
+  const [isAiMode, setIsAiMode] = useState(false);
+  const [savedLayerVisibility, setSavedLayerVisibility] = useState<LayerVisibility | null>(null);
+  const [aiTableData, setAiTableData] = useState<SearchResult[]>([]);
 
   // Data table state
   const [tableData, setTableData] = useState<SearchResult[]>([]);
@@ -161,6 +169,39 @@ export default function Home() {
     setFlyToLocation({ lat: item.latitude, lng: item.longitude });
   };
 
+  // Handle AI chat query results - toggle layers and show results
+  const handleQueryResult = (result: { mapPoints: MapPoint[]; tableResults: SearchResult[] }) => {
+    // Save current layer visibility before hiding
+    if (!isAiMode) {
+      setSavedLayerVisibility({ ...layerVisibility });
+    }
+
+    // Hide all layers to show only AI highlights
+    const hiddenVisibility: LayerVisibility = {};
+    Object.keys(layerVisibility).forEach((key) => {
+      hiddenVisibility[key] = false;
+    });
+    setLayerVisibility(hiddenVisibility);
+
+    // Set AI results
+    setHighlightPoints(result.mapPoints);
+    setAiTableData(result.tableResults);
+    setIsAiMode(true);
+  };
+
+  const handleClearHighlights = () => {
+    // Restore original layer visibility
+    if (savedLayerVisibility) {
+      setLayerVisibility(savedLayerVisibility);
+      setSavedLayerVisibility(null);
+    }
+
+    // Clear AI results
+    setHighlightPoints([]);
+    setAiTableData([]);
+    setIsAiMode(false);
+  };
+
   // Get layer colors for data table
   const layerColors: Record<string, string> = {};
   layers.forEach((layer) => {
@@ -203,21 +244,24 @@ export default function Home() {
               layerVisibility={layerVisibility}
               stateFilter={stateFilter}
               flyToLocation={flyToLocation}
+              highlightPoints={highlightPoints}
+              onClearHighlights={handleClearHighlights}
             />
           </div>
 
           {/* Data Table */}
           <DataTable
-            data={tableData}
-            loading={tableLoading}
+            data={isAiMode ? aiTableData : tableData}
+            loading={isAiMode ? false : tableLoading}
             onRowClick={handleRowClick}
             layerColors={layerColors}
+            isAiResults={isAiMode}
           />
         </div>
       </div>
 
       {/* Chat Panel - bottom right floating */}
-      <ChatPanel />
+      <ChatPanel onQueryResult={handleQueryResult} />
     </div>
   );
 }

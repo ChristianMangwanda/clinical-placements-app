@@ -9,6 +9,7 @@ interface DataTableProps {
   loading: boolean;
   onRowClick?: (item: SearchResult) => void;
   layerColors: Record<string, string>;
+  isAiResults?: boolean;
 }
 
 type SortField = "name" | "state" | "layer_key";
@@ -21,6 +22,7 @@ const LAYER_DISPLAY_NAMES: Record<string, string> = {
   post_secondary_schools: "Post-Secondary",
   military_sites: "Military",
   native_american_reserves: "Native American",
+  ai_results: "AI Result",
 };
 
 // Sort icon component - defined outside to avoid recreation on each render
@@ -46,6 +48,7 @@ export default function DataTable({
   loading,
   onRowClick,
   layerColors,
+  isAiResults = false,
 }: DataTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
@@ -96,13 +99,17 @@ export default function DataTable({
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gold/10">
+      <div className={`flex items-center justify-between px-4 py-2 border-b ${isAiResults ? "border-gold/30 bg-gold/10" : "border-gold/10"}`}>
         <div className="flex items-center gap-2">
-          <Table className="w-4 h-4 text-gold" />
+          <Table className={`w-4 h-4 ${isAiResults ? "text-gold" : "text-gold"}`} />
           <h3 className="font-semibold text-white text-sm">
-            Data Table
+            {isAiResults ? (
+              <span className="text-gold">AI Results</span>
+            ) : (
+              "Data Table"
+            )}
             {!loading && (
-              <span className="text-text-muted ml-2">
+              <span className={`ml-2 ${isAiResults ? "text-gold/70" : "text-text-muted"}`}>
                 ({filteredData.length} results)
               </span>
             )}
@@ -154,7 +161,9 @@ export default function DataTable({
           ) : filteredData.length === 0 ? (
             <div className="flex items-center justify-center h-full text-text-muted">
               {data.length === 0
-                ? "Select layers and adjust map to load data"
+                ? isAiResults
+                  ? "No location data found for this query"
+                  : "Select layers and adjust map to load data"
                 : "No results match your search"}
             </div>
           ) : (

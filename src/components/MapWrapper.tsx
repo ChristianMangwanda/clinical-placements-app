@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { Layer, LayerVisibility } from "@/lib/types";
+import type { Layer, LayerVisibility, MapPoint } from "@/lib/types";
 
 // Dynamically import the Map component with SSR disabled
 const MapComponent = dynamic(() => import("./MapClient"), {
@@ -18,6 +18,8 @@ interface MapWrapperProps {
   layerVisibility: LayerVisibility;
   stateFilter?: string[];
   flyToLocation?: { lat: number; lng: number } | null;
+  highlightPoints?: MapPoint[];
+  onClearHighlights?: () => void;
 }
 
 export default function MapWrapper(props: MapWrapperProps) {

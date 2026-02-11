@@ -162,3 +162,29 @@ body {
 .card:hover {
   border-color: rgba(250, 201, 34, 0.2);
 }
+
+/* AI Query Highlight Markers */
+.highlight-marker {
+  background: transparent !important;
+}
+
+.highlight-marker-inner {
+  background: #FAC922;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid #092E28;
+  box-shadow: 0 0 0 0 rgba(250, 201, 34, 0.5);
+  animation: pulse-highlight 2s ease-in-out infinite;
+}
+
+@keyframes pulse-highlight {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(250, 201, 34, 0.5);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(250, 201, 34, 0);
+    transform: scale(1.1);
+  }
+}

@@ -1,12 +1,26 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, Send, X, ChevronDown, Code, Loader2 } from "lucide-react";
-import type { ChatMessage } from "@/lib/types";
+import { MessageCircle, Send, X, ChevronDown, Code, Loader2, Sparkles } from "lucide-react";
+import type { ChatMessage, MapPoint, SearchResult } from "@/lib/types";
+
+interface ChatQueryResult {
+  mapPoints: MapPoint[];
+  tableResults: SearchResult[];
+}
 
 interface ChatPanelProps {
-  onQueryResult?: (result: unknown) => void;
+  onQueryResult?: (result: ChatQueryResult) => void;
 }
+
+// Starter questions to help users get started
+const STARTER_QUESTIONS = [
+  "Which states have no OT program?",
+  "Show me military bases in North Dakota",
+  "What schools offer all three programs?",
+  "How many clinical sites are in Kansas?",
+  "Where are Native American reserves in the Southwest?",
+];
 
 export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -24,13 +38,14 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
     }
   }, [messages]);
 
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
+  const sendMessage = async (messageText?: string) => {
+    const textToSend = messageText || input.trim();
+    if (!textToSend || loading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: "user",
-      content: input.trim(),
+      content: textToSend,
       timestamp: new Date(),
     };
 
@@ -41,8 +56,11 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
     try {
       const response = await fetch("/api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input.trim() }),
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-secret": process.env.NEXT_PUBLIC_API_SECRET || "",
+        },
+        body: JSON.stringify({ message: textToSend }),
       });
 
       const result = await response.json();
@@ -51,15 +69,21 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: result.data.message,
+          content: result.data.summary,
           sql: result.data.sql,
+          mapPoints: result.data.mapPoints,
+          rowCount: result.data.rowCount,
           timestamp: new Date(),
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
 
-        if (onQueryResult && result.data.resultCount) {
-          onQueryResult(result.data);
+        // Notify parent about query results for map highlighting and table display
+        if (onQueryResult) {
+          onQueryResult({
+            mapPoints: result.data.mapPoints || [],
+            tableResults: result.data.tableResults || [],
+          });
         }
       } else {
         const errorMessage: ChatMessage = {
@@ -89,6 +113,10 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
       e.preventDefault();
       sendMessage();
     }
+  };
+
+  const handleStarterClick = (question: string) => {
+    sendMessage(question);
   };
 
   // Floating button when closed
@@ -148,12 +176,26 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
         <>
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.length === 0 && (
-              <div className="text-center text-text-muted py-8">
-                <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                <p className="text-sm">Ask me questions about clinical placements!</p>
-                <p className="text-xs mt-2">
-                  Try: &quot;Which states have no OT program?&quot;
+              <div className="text-center py-4">
+                <Sparkles className="w-10 h-10 mx-auto mb-3 text-gold/60" />
+                <p className="text-sm text-white mb-1">Ask me about clinical placements!</p>
+                <p className="text-xs text-text-muted mb-4">
+                  I can search across 81,000+ sites, schools, and more.
                 </p>
+
+                {/* Starter questions */}
+                <div className="space-y-2">
+                  <p className="text-xs text-text-muted uppercase tracking-wider">Try asking:</p>
+                  {STARTER_QUESTIONS.map((question, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleStarterClick(question)}
+                      className="block w-full text-left text-sm bg-green-light/20 hover:bg-green-light/30 border border-gold/10 hover:border-gold/30 rounded-lg px-3 py-2 text-white/90 transition-colors"
+                    >
+                      &quot;{question}&quot;
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -172,6 +214,16 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
                   }`}
                 >
                   <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+
+                  {/* Show row count for assistant messages */}
+                  {message.role === "assistant" && message.rowCount !== undefined && message.rowCount !== null && (
+                    <p className="text-xs mt-2 text-gold/80">
+                      Found {message.rowCount} result{message.rowCount !== 1 ? "s" : ""}
+                      {message.mapPoints && message.mapPoints.length > 0 && (
+                        <span> • {message.mapPoints.length} shown on map</span>
+                      )}
+                    </p>
+                  )}
 
                   {/* Show SQL if enabled and available */}
                   {showSql && message.sql && (
@@ -214,7 +266,7 @@ export default function ChatPanel({ onQueryResult }: ChatPanelProps) {
                 className="flex-1 bg-green/50 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder-text-muted focus:outline-none focus:border-gold/50 transition-colors disabled:opacity-50"
               />
               <button
-                onClick={sendMessage}
+                onClick={() => sendMessage()}
                 disabled={!input.trim() || loading}
                 className="bg-gold text-green-deep px-4 py-2 rounded-lg font-medium text-sm hover:bg-gold/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >

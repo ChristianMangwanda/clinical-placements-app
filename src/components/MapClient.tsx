@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import type { Layer, LayerVisibility, MapBounds } from "@/lib/types";
+import { X } from "lucide-react";
+import type { Layer, LayerVisibility, MapBounds, MapPoint } from "@/lib/types";
 
 // Site properties from the API
 interface SiteProperties {
@@ -47,11 +48,24 @@ function createColoredIcon(color: string) {
   });
 }
 
+// Create highlight marker with pulsing animation
+function createHighlightIcon() {
+  return L.divIcon({
+    className: "highlight-marker",
+    html: `<div class="highlight-marker-inner"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+  });
+}
+
 interface MapProps {
   layers: Layer[];
   layerVisibility: LayerVisibility;
   stateFilter?: string[];
   flyToLocation?: { lat: number; lng: number } | null;
+  highlightPoints?: MapPoint[];
+  onClearHighlights?: () => void;
 }
 
 // Component to handle map events
@@ -108,17 +122,72 @@ function FlyToLocation({ location }: { location: { lat: number; lng: number } | 
   return null;
 }
 
+// Component to fly to bounds of highlight points
+function FlyToHighlightBounds({ points }: { points: MapPoint[] }) {
+  const map = useMap();
+  const prevPointsRef = useRef<MapPoint[]>([]);
+
+  useEffect(() => {
+    // Only fly if points actually changed
+    if (points.length === 0) {
+      prevPointsRef.current = [];
+      return;
+    }
+
+    // Check if points are the same as before
+    const pointsChanged = points.length !== prevPointsRef.current.length ||
+      points.some((p, i) => {
+        const prev = prevPointsRef.current[i];
+        return !prev || p.lat !== prev.lat || p.lng !== prev.lng;
+      });
+
+    if (!pointsChanged) return;
+
+    prevPointsRef.current = points;
+
+    if (points.length === 1) {
+      // Single point - fly to it
+      map.flyTo([points[0].lat, points[0].lng], 10, { duration: 1 });
+    } else {
+      // Multiple points - calculate bounds and fly to them
+      const lats = points.map(p => p.lat);
+      const lngs = points.map(p => p.lng);
+
+      const bounds = L.latLngBounds(
+        [Math.min(...lats), Math.min(...lngs)],
+        [Math.max(...lats), Math.max(...lngs)]
+      );
+
+      map.flyToBounds(bounds, {
+        padding: [50, 50],
+        maxZoom: 10,
+        duration: 1,
+      });
+    }
+  }, [map, points]);
+
+  return null;
+}
+
 export default function MapClient({
   layers,
   layerVisibility,
   stateFilter,
   flyToLocation,
+  highlightPoints = [],
+  onClearHighlights,
 }: MapProps) {
   const [sitesData, setSitesData] = useState<Record<string, SiteFeatureCollection>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
   const [bounds, setBounds] = useState<MapBounds | null>(null);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const iconCache = useRef<Record<string, L.DivIcon>>({});
+  const highlightIcon = useRef<L.DivIcon | null>(null);
+
+  // Create highlight icon once
+  if (!highlightIcon.current) {
+    highlightIcon.current = createHighlightIcon();
+  }
 
   // Fetch sites for visible layers when bounds change
   const fetchSites = useCallback(
@@ -181,6 +250,7 @@ export default function MapClient({
   };
 
   const isLoading = Object.values(loading).some(Boolean);
+  const hasHighlights = highlightPoints.length > 0;
 
   return (
     <div className="h-full w-full relative">
@@ -189,6 +259,17 @@ export default function MapClient({
         <div className="absolute top-4 right-4 z-[1000] bg-[#092E28]/90 text-[#FAC922] px-3 py-1.5 rounded text-sm font-medium">
           Loading sites...
         </div>
+      )}
+
+      {/* Clear highlights button */}
+      {hasHighlights && onClearHighlights && (
+        <button
+          onClick={onClearHighlights}
+          className="absolute top-4 left-4 z-[1000] bg-[#FAC922] text-[#092E28] px-3 py-1.5 rounded text-sm font-medium flex items-center gap-2 hover:bg-[#FAC922]/90 transition-colors shadow-lg"
+        >
+          <X className="w-4 h-4" />
+          Clear {highlightPoints.length} highlights
+        </button>
       )}
 
       <MapContainer
@@ -204,6 +285,7 @@ export default function MapClient({
 
         <MapEventHandler onBoundsChange={handleBoundsChange} />
         <FlyToLocation location={flyToLocation || null} />
+        <FlyToHighlightBounds points={highlightPoints} />
 
         {/* Render markers for each visible layer */}
         {layers.map((layer) => {
@@ -251,6 +333,35 @@ export default function MapClient({
             );
           });
         })}
+
+        {/* Render highlight markers on top */}
+        {highlightPoints.map((point, index) => (
+          <Marker
+            key={`highlight-${index}-${point.lat}-${point.lng}`}
+            position={[point.lat, point.lng]}
+            icon={highlightIcon.current!}
+            zIndexOffset={1000}
+          >
+            <Tooltip direction="top" offset={[0, -10]} opacity={0.95}>
+              <span className="font-medium">{point.name}</span>
+              {point.label && <span className="text-gray-500 ml-1">({point.label})</span>}
+            </Tooltip>
+
+            <Popup>
+              <div className="min-w-[180px] p-1">
+                <h3 className="font-semibold text-[#0D433B] text-base mb-1">
+                  {point.name}
+                </h3>
+                {point.label && (
+                  <p className="text-sm text-gray-600">{point.label}</p>
+                )}
+                <p className="text-xs text-gray-400 mt-1">
+                  From AI query result
+                </p>
+              </div>
+            </Popup>
+          </Marker>
+        ))}
       </MapContainer>
     </div>
   );
