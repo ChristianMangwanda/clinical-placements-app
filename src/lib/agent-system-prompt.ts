@@ -17,23 +17,61 @@ DROP, ALTER, TRUNCATE, CREATE, or any data-modifying statements.
 TABLE: hrsa_sites (81,477 rows)
 Description: Healthcare providers and clinical sites from the HRSA database.
 These are potential clinical placement locations for students.
+
 Columns:
   - id: integer, primary key
-  - site_name: text, name of the healthcare facility (e.g., "REGENCY HOME HEALTH, LLC")
-  - site_category: text, category of site (e.g., "Community Health Center", "Rural Health Clinic")
-  - state: char(2), US state abbreviation (e.g., "NH", "CA", "KS")
-  - city: text, city name
-  - physician_ftes: numeric(10,2), number of physician full-time equivalents
-  - physician_assistant_ftes: numeric(10,2), number of PA full-time equivalents
-  - num_beds: integer, number of beds (0 if outpatient)
-  - is_federally_funded_hc: boolean, true if Federally Qualified Health Center (FQHC)
-  - is_hospital_based: boolean, true if hospital-based site
-  - site_type: text, type of site (e.g., "Main Site", "Service Delivery Site")
-  - is_rural_health_clinic: boolean, true if Rural Health Clinic designation
-  - rural_status: text, rural classification (e.g., "Rural", "Urban", "Highly Rural")
-  - longitude: numeric(11,7), geographic longitude
-  - latitude: numeric(10,7), geographic latitude
+  - site_name: text, name of the healthcare facility
+  - site_category: text, type of healthcare organization. Common values:
+      "Community Health Center", "Migrant Health Center", "Public Housing Primary Care",
+      "Homeless Health Center", "School-Based Health Center", "Indian Health Service"
+  - state: char(2), US state abbreviation
+  - city: text, city name where the facility is located
+
+  STAFFING METRICS:
+  - physician_ftes: numeric, number of physician full-time equivalents (FTEs)
+      Use this to find sites with physician capacity. Higher = larger medical staff.
+  - physician_assistant_ftes: numeric, number of PA full-time equivalents
+      Use this to find sites that employ PAs or have PA training opportunities.
+
+  FACILITY SIZE:
+  - num_beds: integer, number of inpatient beds (0 = outpatient only)
+      Use this to distinguish hospitals (beds > 0) from clinics (beds = 0).
+
+  FACILITY DESIGNATIONS (boolean flags):
+  - is_federally_funded_hc: boolean, TRUE if Federally Qualified Health Center (FQHC)
+      FQHCs serve underserved populations and receive federal funding.
+  - is_hospital_based: boolean, TRUE if site is part of a hospital
+      Use this to find hospital-affiliated clinical placement sites.
+  - is_rural_health_clinic: boolean, TRUE if official Rural Health Clinic (RHC) designation
+      RHCs are certified by CMS to provide primary care in rural areas.
+
+  SITE CLASSIFICATION:
+  - site_type: text, operational classification. Values:
+      "Main Site" = primary facility location
+      "Service Delivery Site" = satellite or branch location
+  - rural_status: text, geographic classification. Values:
+      "Rural" = rural area
+      "Highly Rural" = very remote rural area
+      "Urban" = urban/metropolitan area
+      "Non-Rural" = suburban or mixed area
+
+  IMPORTANT - RURAL QUERIES:
+  - To find facilities LOCATED IN rural areas: WHERE rural_status IN ('Rural', 'Highly Rural')
+  - To find official Rural Health Clinics: WHERE is_rural_health_clinic = TRUE
+  - These are DIFFERENT: A facility can be in an urban area but have RHC designation, or vice versa.
+
+  COORDINATES:
+  - longitude: numeric, geographic longitude
+  - latitude: numeric, geographic latitude
   - source: text, always "HRSA"
+
+COMMON HRSA QUERY PATTERNS:
+1. Find rural facilities: WHERE rural_status IN ('Rural', 'Highly Rural')
+2. Find FQHCs: WHERE is_federally_funded_hc = TRUE
+3. Find hospitals: WHERE num_beds > 0 OR is_hospital_based = TRUE
+4. Find sites with PA opportunities: WHERE physician_assistant_ftes > 0
+5. Find community health centers: WHERE site_category ILIKE '%community health%'
+6. Find underserved areas: Combine FQHC + rural status + low physician FTEs
 
 TABLE: schools (858 rows)
 Description: Universities and colleges that offer PT, OT, or PA programs.
@@ -244,5 +282,25 @@ SQL: SELECT site_name, city, state, physician_assistant_ftes, site_category, lat
 
 Example 14:
 Q: "Show me hospital-based clinical sites in rural areas"
-SQL: SELECT site_name, city, state, num_beds, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE is_hospital_based = TRUE AND rural_status ILIKE '%rural%' LIMIT 500`;
+SQL: SELECT site_name, city, state, num_beds, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE is_hospital_based = TRUE AND rural_status ILIKE '%rural%' LIMIT 500
+
+Example 15:
+Q: "Show me rural health facilities in Vermont"
+SQL: SELECT site_name, city, state, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'VT' AND rural_status IN ('Rural', 'Highly Rural') LIMIT 500
+
+Example 16:
+Q: "Find community health centers in California"
+SQL: SELECT site_name, city, state, site_category, physician_ftes, latitude, longitude FROM hrsa_sites WHERE state = 'CA' AND site_category ILIKE '%community health%' LIMIT 500
+
+Example 17:
+Q: "Which states have the most FQHC sites?"
+SQL: SELECT state, COUNT(*) as fqhc_count FROM hrsa_sites WHERE is_federally_funded_hc = TRUE GROUP BY state ORDER BY fqhc_count DESC
+
+Example 18:
+Q: "Show me hospitals in rural areas of Montana"
+SQL: SELECT site_name, city, state, num_beds, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'MT' AND num_beds > 0 AND rural_status IN ('Rural', 'Highly Rural') LIMIT 500
+
+Example 19:
+Q: "Find sites with PA training opportunities in New England"
+SQL: SELECT site_name, city, state, physician_assistant_ftes, site_category, latitude, longitude FROM hrsa_sites WHERE state IN ('CT', 'ME', 'MA', 'NH', 'RI', 'VT') AND physician_assistant_ftes > 0 ORDER BY physician_assistant_ftes DESC LIMIT 500`;
 }
