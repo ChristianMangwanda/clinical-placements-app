@@ -14,6 +14,25 @@ const NAME_COLUMNS: Record<string, string> = {
   native_american_reserves: "name",
 };
 
+// Extended HRSA site interface
+interface HrsaSiteRow {
+  id: number;
+  name: string;
+  state: string;
+  latitude: number;
+  longitude: number;
+  site_category?: string;
+  city?: string;
+  physician_ftes?: number;
+  physician_assistant_ftes?: number;
+  num_beds?: number;
+  is_federally_funded_hc?: boolean;
+  is_hospital_based?: boolean;
+  site_type?: string;
+  is_rural_health_clinic?: boolean;
+  rural_status?: string;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -45,12 +64,22 @@ export async function GET(request: NextRequest) {
     const tableName = layer.table_name;
     const nameColumn = NAME_COLUMNS[tableName] || "name";
     const isSchools = layerKey === "schools";
+    const isHrsa = layerKey === "hrsa_sites";
 
     // Build query with optional filters
-    // For schools, also include the profession column
-    let sql = isSchools
-      ? `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude, profession FROM ${escapeId(tableName)} WHERE 1=1`
-      : `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude FROM ${escapeId(tableName)} WHERE 1=1`;
+    // For schools, include the profession column
+    // For HRSA, include extended fields
+    let sql: string;
+    if (isSchools) {
+      sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude, profession FROM ${escapeId(tableName)} WHERE 1=1`;
+    } else if (isHrsa) {
+      sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude,
+             site_category, city, physician_ftes, physician_assistant_ftes, num_beds,
+             is_federally_funded_hc, is_hospital_based, site_type, is_rural_health_clinic, rural_status
+             FROM ${escapeId(tableName)} WHERE 1=1`;
+    } else {
+      sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude FROM ${escapeId(tableName)} WHERE 1=1`;
+    }
     const params: unknown[] = [];
     let paramIndex = 1;
 
@@ -88,6 +117,17 @@ export async function GET(request: NextRequest) {
       latitude: number;
       longitude: number;
       profession?: string;
+      // HRSA extended fields
+      site_category?: string;
+      city?: string;
+      physician_ftes?: number;
+      physician_assistant_ftes?: number;
+      num_beds?: number;
+      is_federally_funded_hc?: boolean;
+      is_hospital_based?: boolean;
+      site_type?: string;
+      is_rural_health_clinic?: boolean;
+      rural_status?: string;
     }
 
     const sites = await query<SiteRow>(sql, params);
@@ -136,6 +176,32 @@ export async function GET(request: NextRequest) {
           layer_key: layerKey,
           state: school.state,
           professions: school.professions, // Array of all programs
+        },
+      }));
+    } else if (isHrsa) {
+      // HRSA sites with extended properties
+      features = sites.map((site) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [site.longitude, site.latitude] as [number, number],
+        },
+        properties: {
+          id: site.id,
+          name: site.name || "Unknown",
+          layer_key: layerKey,
+          state: site.state,
+          // Extended HRSA fields
+          city: site.city,
+          site_category: site.site_category,
+          site_type: site.site_type,
+          physician_ftes: site.physician_ftes,
+          physician_assistant_ftes: site.physician_assistant_ftes,
+          num_beds: site.num_beds,
+          is_federally_funded_hc: site.is_federally_funded_hc,
+          is_hospital_based: site.is_hospital_based,
+          is_rural_health_clinic: site.is_rural_health_clinic,
+          rural_status: site.rural_status,
         },
       }));
     } else {

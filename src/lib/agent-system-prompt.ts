@@ -20,7 +20,17 @@ These are potential clinical placement locations for students.
 Columns:
   - id: integer, primary key
   - site_name: text, name of the healthcare facility (e.g., "REGENCY HOME HEALTH, LLC")
+  - site_category: text, category of site (e.g., "Community Health Center", "Rural Health Clinic")
   - state: char(2), US state abbreviation (e.g., "NH", "CA", "KS")
+  - city: text, city name
+  - physician_ftes: numeric(10,2), number of physician full-time equivalents
+  - physician_assistant_ftes: numeric(10,2), number of PA full-time equivalents
+  - num_beds: integer, number of beds (0 if outpatient)
+  - is_federally_funded_hc: boolean, true if Federally Qualified Health Center (FQHC)
+  - is_hospital_based: boolean, true if hospital-based site
+  - site_type: text, type of site (e.g., "Main Site", "Service Delivery Site")
+  - is_rural_health_clinic: boolean, true if Rural Health Clinic designation
+  - rural_status: text, rural classification (e.g., "Rural", "Urban", "Highly Rural")
   - longitude: numeric(11,7), geographic longitude
   - latitude: numeric(10,7), geographic latitude
   - source: text, always "HRSA"
@@ -218,5 +228,21 @@ SQL: SELECT name, state, latitude, longitude FROM military_sites WHERE component
 
 Example 10:
 Q: "Show me schools with probationary accreditation"
-SQL: SELECT institution_name, profession, state, accreditation_status, latitude, longitude FROM schools WHERE accreditation_status ILIKE '%probation%' ORDER BY state, institution_name`;
+SQL: SELECT institution_name, profession, state, accreditation_status, latitude, longitude FROM schools WHERE accreditation_status ILIKE '%probation%' ORDER BY state, institution_name
+
+Example 11:
+Q: "Show me Federally Qualified Health Centers in Texas"
+SQL: SELECT site_name, city, state, physician_ftes, num_beds, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'TX' AND is_federally_funded_hc = TRUE LIMIT 500
+
+Example 12:
+Q: "Find rural health clinics with more than 5 beds"
+SQL: SELECT site_name, city, state, num_beds, rural_status, latitude, longitude FROM hrsa_sites WHERE is_rural_health_clinic = TRUE AND num_beds > 5 ORDER BY num_beds DESC LIMIT 500
+
+Example 13:
+Q: "Which HRSA sites have PA positions available?"
+SQL: SELECT site_name, city, state, physician_assistant_ftes, site_category, latitude, longitude FROM hrsa_sites WHERE physician_assistant_ftes > 0 ORDER BY physician_assistant_ftes DESC LIMIT 500
+
+Example 14:
+Q: "Show me hospital-based clinical sites in rural areas"
+SQL: SELECT site_name, city, state, num_beds, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE is_hospital_based = TRUE AND rural_status ILIKE '%rural%' LIMIT 500`;
 }

@@ -14,6 +14,17 @@ interface SiteProperties {
   layer_key: string;
   state: string;
   professions?: string[]; // Only for schools layer - array of programs (PT, OT, PA)
+  // Extended HRSA fields
+  city?: string;
+  site_category?: string;
+  site_type?: string;
+  physician_ftes?: number;
+  physician_assistant_ftes?: number;
+  num_beds?: number;
+  is_federally_funded_hc?: boolean;
+  is_hospital_based?: boolean;
+  is_rural_health_clinic?: boolean;
+  rural_status?: string;
 }
 
 interface SiteFeature {
@@ -315,18 +326,84 @@ export default function MapClient({
 
                 {/* Click popup */}
                 <Popup>
-                  <div className="min-w-[200px] p-1">
-                    <h3 className="font-semibold text-[#0D433B] text-base mb-1">
+                  <div className="min-w-[240px] max-w-[320px] p-1">
+                    <h3 className="font-semibold text-[#0D433B] text-base mb-2">
                       {feature.properties.name}
                     </h3>
-                    <p className="text-sm text-gray-600">
-                      {feature.properties.professions && feature.properties.professions.length > 0
-                        ? `Programs: ${feature.properties.professions.join(", ")}`
-                        : layer.display_name}
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      {feature.properties.state}
-                    </p>
+
+                    {/* Schools - show programs */}
+                    {feature.properties.professions && feature.properties.professions.length > 0 && (
+                      <p className="text-sm text-gray-600 mb-1">
+                        <span className="font-medium">Programs:</span> {feature.properties.professions.join(", ")}
+                      </p>
+                    )}
+
+                    {/* HRSA sites - show extended details */}
+                    {layer.layer_key === "hrsa_sites" && (
+                      <div className="text-sm space-y-1">
+                        {feature.properties.city && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Location:</span> {feature.properties.city}, {feature.properties.state}
+                          </p>
+                        )}
+                        {feature.properties.site_category && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Category:</span> {feature.properties.site_category}
+                          </p>
+                        )}
+                        {feature.properties.site_type && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Type:</span> {feature.properties.site_type}
+                          </p>
+                        )}
+                        {(feature.properties.physician_ftes !== undefined && feature.properties.physician_ftes > 0) && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Physician FTEs:</span> {feature.properties.physician_ftes}
+                          </p>
+                        )}
+                        {(feature.properties.physician_assistant_ftes !== undefined && feature.properties.physician_assistant_ftes > 0) && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">PA FTEs:</span> {feature.properties.physician_assistant_ftes}
+                          </p>
+                        )}
+                        {(feature.properties.num_beds !== undefined && feature.properties.num_beds > 0) && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Beds:</span> {feature.properties.num_beds}
+                          </p>
+                        )}
+                        {feature.properties.rural_status && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Rural Status:</span> {feature.properties.rural_status}
+                          </p>
+                        )}
+                        {/* Badges for special designations */}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {feature.properties.is_federally_funded_hc && (
+                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
+                              FQHC
+                            </span>
+                          )}
+                          {feature.properties.is_hospital_based && (
+                            <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded">
+                              Hospital-Based
+                            </span>
+                          )}
+                          {feature.properties.is_rural_health_clinic && (
+                            <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
+                              Rural Health Clinic
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Default for other layers */}
+                    {layer.layer_key !== "hrsa_sites" && !feature.properties.professions && (
+                      <>
+                        <p className="text-sm text-gray-600">{layer.display_name}</p>
+                        <p className="text-sm text-gray-500">{feature.properties.state}</p>
+                      </>
+                    )}
                   </div>
                 </Popup>
               </Marker>
