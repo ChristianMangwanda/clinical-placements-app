@@ -20,11 +20,11 @@ interface ChatAPIResponse {
 }
 
 export async function POST(request: NextRequest) {
-  // Security check: rate limiting, API secret, and domain validation
+  // Security check: rate limiting and API secret (domain check disabled for Vercel compatibility)
   const securityResult = checkApiSecurity(request, {
     rateLimit: 20, // 20 requests per minute per IP
     requireSecret: true,
-    requireDomain: true,
+    requireDomain: false,
   });
 
   if (!securityResult.allowed) {
