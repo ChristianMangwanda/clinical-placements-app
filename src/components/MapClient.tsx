@@ -25,6 +25,13 @@ interface SiteProperties {
   is_hospital_based?: boolean;
   is_rural_health_clinic?: boolean;
   rural_status?: string;
+  // Extended Active Sites fields
+  address?: string;
+  programs?: string;
+  has_ot?: boolean;
+  has_pt?: boolean;
+  has_pa?: boolean;
+  source?: string;
 }
 
 interface SiteFeature {
@@ -397,8 +404,52 @@ export default function MapClient({
                       </div>
                     )}
 
+                    {/* Active Sites - show clinical placement details */}
+                    {layer.layer_key === "active_sites" && (
+                      <div className="text-sm space-y-1">
+                        {feature.properties.address && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Address:</span> {feature.properties.address}
+                          </p>
+                        )}
+                        {feature.properties.city && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Location:</span> {feature.properties.city}, {feature.properties.state}
+                          </p>
+                        )}
+                        {feature.properties.programs && (
+                          <p className="text-gray-600">
+                            <span className="font-medium">Programs:</span> {feature.properties.programs}
+                          </p>
+                        )}
+                        {/* Program badges */}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {feature.properties.has_ot && (
+                            <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-medium">
+                              OT
+                            </span>
+                          )}
+                          {feature.properties.has_pt && (
+                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-medium">
+                              PT
+                            </span>
+                          )}
+                          {feature.properties.has_pa && (
+                            <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded font-medium">
+                              PA
+                            </span>
+                          )}
+                        </div>
+                        {feature.properties.source && (
+                          <p className="text-xs text-gray-400 mt-2">
+                            Source: {feature.properties.source}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {/* Default for other layers */}
-                    {layer.layer_key !== "hrsa_sites" && !feature.properties.professions && (
+                    {layer.layer_key !== "hrsa_sites" && layer.layer_key !== "active_sites" && !feature.properties.professions && (
                       <>
                         <p className="text-sm text-gray-600">{layer.display_name}</p>
                         <p className="text-sm text-gray-500">{feature.properties.state}</p>

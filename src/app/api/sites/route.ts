@@ -66,10 +66,11 @@ export async function GET(request: NextRequest) {
     const nameColumn = NAME_COLUMNS[tableName] || "name";
     const isSchools = layerKey === "schools";
     const isHrsa = layerKey === "hrsa_sites";
+    const isActiveSites = layerKey === "active_sites";
 
     // Build query with optional filters
     // For schools, include the profession column
-    // For HRSA, include extended fields
+    // For HRSA and Active Sites, include extended fields
     let sql: string;
     if (isSchools) {
       sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude, profession FROM ${escapeId(tableName)} WHERE 1=1`;
@@ -77,6 +78,10 @@ export async function GET(request: NextRequest) {
       sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude,
              site_category, city, physician_ftes, physician_assistant_ftes, num_beds,
              is_federally_funded_hc, is_hospital_based, site_type, is_rural_health_clinic, rural_status
+             FROM ${escapeId(tableName)} WHERE 1=1`;
+    } else if (isActiveSites) {
+      sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude,
+             address, city, programs, has_ot, has_pt, has_pa, source
              FROM ${escapeId(tableName)} WHERE 1=1`;
     } else {
       sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude FROM ${escapeId(tableName)} WHERE 1=1`;
@@ -129,6 +134,13 @@ export async function GET(request: NextRequest) {
       site_type?: string;
       is_rural_health_clinic?: boolean;
       rural_status?: string;
+      // Active Sites extended fields
+      address?: string;
+      programs?: string;
+      has_ot?: boolean;
+      has_pt?: boolean;
+      has_pa?: boolean;
+      source?: string;
     }
 
     const sites = await query<SiteRow>(sql, params);
@@ -203,6 +215,29 @@ export async function GET(request: NextRequest) {
           is_hospital_based: site.is_hospital_based,
           is_rural_health_clinic: site.is_rural_health_clinic,
           rural_status: site.rural_status,
+        },
+      }));
+    } else if (isActiveSites) {
+      // Active Clarkson Sites with extended properties
+      features = sites.map((site) => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "Point" as const,
+          coordinates: [site.longitude, site.latitude] as [number, number],
+        },
+        properties: {
+          id: site.id,
+          name: site.name || "Unknown",
+          layer_key: layerKey,
+          state: site.state,
+          // Extended Active Sites fields
+          address: site.address,
+          city: site.city,
+          programs: site.programs,
+          has_ot: site.has_ot,
+          has_pt: site.has_pt,
+          has_pa: site.has_pa,
+          source: site.source,
         },
       }));
     } else {

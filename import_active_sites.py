@@ -120,7 +120,7 @@ def add_layer_metadata(conn):
             'active_sites',
             'Current active clinical placement sites used by Clarkson University programs',
             'star',
-            '#9B59B6',
+            '#000000',
             true,
             0
         );

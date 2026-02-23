@@ -144,7 +144,33 @@ Columns:
   - longitude: numeric(11,7)
   - source: text, always "Native American Sites"
 
-TABLE: layers (5 rows)
+TABLE: active_sites (805 rows)
+Description: Current active clinical placement sites used by Clarkson University programs.
+These are EXISTING partnerships where students are already being placed for clinical rotations.
+This is the most important table for placement coordinators as it shows proven, established sites.
+Columns:
+  - id: integer, primary key
+  - site_name: text, name of the clinical site
+  - address: text, street address of the facility
+  - city: text, city where the site is located
+  - state: text, state (note: may include "Outside United States" or "Guam")
+  - programs: text, descriptive text of programs offered at this site
+  - has_ot: boolean, TRUE if site accepts Occupational Therapy students
+  - has_pt: boolean, TRUE if site accepts Physical Therapy students
+  - has_pa: boolean, TRUE if site accepts Physician Assistant students
+  - longitude: numeric(11,7)
+  - latitude: numeric(10,7)
+  - source: text, always "Exxat Active Sites"
+  - created_at, updated_at: timestamps
+
+COMMON ACTIVE_SITES QUERY PATTERNS:
+1. Find sites for a specific program: WHERE has_ot = TRUE (or has_pt, has_pa)
+2. Find sites with multiple programs: WHERE has_ot = TRUE AND has_pt = TRUE
+3. Count sites by program: SELECT COUNT(*) FILTER (WHERE has_ot) as ot_sites, COUNT(*) FILTER (WHERE has_pt) as pt_sites, COUNT(*) FILTER (WHERE has_pa) as pa_sites FROM active_sites
+4. Find sites in a specific state: WHERE state = 'NY'
+5. Search by site name: WHERE site_name ILIKE '%hospital%'
+
+TABLE: layers (6 rows)
 Description: Metadata about map layers. Rarely queried by users directly.
 Columns:
   - id, layer_key, display_name, table_name, description, icon, color,
@@ -302,5 +328,29 @@ SQL: SELECT site_name, city, state, num_beds, rural_status, latitude, longitude 
 
 Example 19:
 Q: "Find sites with PA training opportunities in New England"
-SQL: SELECT site_name, city, state, physician_assistant_ftes, site_category, latitude, longitude FROM hrsa_sites WHERE state IN ('CT', 'ME', 'MA', 'NH', 'RI', 'VT') AND physician_assistant_ftes > 0 ORDER BY physician_assistant_ftes DESC LIMIT 500`;
+SQL: SELECT site_name, city, state, physician_assistant_ftes, site_category, latitude, longitude FROM hrsa_sites WHERE state IN ('CT', 'ME', 'MA', 'NH', 'RI', 'VT') AND physician_assistant_ftes > 0 ORDER BY physician_assistant_ftes DESC LIMIT 500
+
+Example 20:
+Q: "Show me all active clinical sites in New York"
+SQL: SELECT site_name, address, city, state, programs, has_ot, has_pt, has_pa, latitude, longitude FROM active_sites WHERE state = 'NY' LIMIT 500
+
+Example 21:
+Q: "Which active sites accept both PT and OT students?"
+SQL: SELECT site_name, city, state, programs, latitude, longitude FROM active_sites WHERE has_pt = TRUE AND has_ot = TRUE ORDER BY state, site_name LIMIT 500
+
+Example 22:
+Q: "How many active sites do we have for each program?"
+SQL: SELECT COUNT(*) FILTER (WHERE has_ot = TRUE) as ot_sites, COUNT(*) FILTER (WHERE has_pt = TRUE) as pt_sites, COUNT(*) FILTER (WHERE has_pa = TRUE) as pa_sites FROM active_sites
+
+Example 23:
+Q: "Find active PA sites in California"
+SQL: SELECT site_name, address, city, state, programs, latitude, longitude FROM active_sites WHERE state = 'CA' AND has_pa = TRUE ORDER BY city LIMIT 500
+
+Example 24:
+Q: "Show me all active sites outside the United States"
+SQL: SELECT site_name, address, city, state, programs, has_ot, has_pt, has_pa, latitude, longitude FROM active_sites WHERE state NOT IN ('AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC')
+
+Example 25:
+Q: "Which states have the most active clinical sites?"
+SQL: SELECT state, COUNT(*) as site_count, COUNT(*) FILTER (WHERE has_ot) as ot_count, COUNT(*) FILTER (WHERE has_pt) as pt_count, COUNT(*) FILTER (WHERE has_pa) as pa_count FROM active_sites GROUP BY state ORDER BY site_count DESC`;
 }
