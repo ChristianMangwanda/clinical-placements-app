@@ -12,6 +12,7 @@ const NAME_COLUMNS: Record<string, string> = {
   post_secondary_schools: "institution_name",
   military_sites: "name",
   native_american_reserves: "name",
+  active_sites: "site_name",
 };
 
 // Extended HRSA site interface
