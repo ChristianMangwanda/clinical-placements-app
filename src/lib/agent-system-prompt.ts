@@ -23,9 +23,13 @@ Columns:
   - site_name: text, name of the healthcare facility
   - site_category: text, type of healthcare organization. Common values:
       "Community Health Center", "Migrant Health Center", "Public Housing Primary Care",
-      "Homeless Health Center", "School-Based Health Center", "Indian Health Service"
+      "Homeless Health Center", "School-Based Health Center", "Indian Health Service",
+      "Hospital", "Ambulatory Surgical Center", "Federally Qualified Health Center",
+      "Rural Health Clinic", "Skilled Nursing Facility", "Home Health Agency"
   - state: char(2), US state abbreviation
   - city: text, city name where the facility is located
+  - county_fips: char(5), 5-digit county FIPS code (state FIPS + county FIPS, zero-padded)
+      Use this to JOIN with county_population table for demographic analysis
 
   STAFFING METRICS:
   - physician_ftes: numeric, number of physician full-time equivalents (FTEs)
@@ -49,14 +53,14 @@ Columns:
   - site_type: text, operational classification. Values:
       "Main Site" = primary facility location
       "Service Delivery Site" = satellite or branch location
+      "Not Applicable" = classification doesn't apply
   - rural_status: text, geographic classification. Values:
-      "Rural" = rural area
-      "Highly Rural" = very remote rural area
-      "Urban" = urban/metropolitan area
-      "Non-Rural" = suburban or mixed area
+      "Yes" = located in a rural area
+      "No" = located in an urban/non-rural area
+      "Other" = special classification
 
   IMPORTANT - RURAL QUERIES:
-  - To find facilities LOCATED IN rural areas: WHERE rural_status IN ('Rural', 'Highly Rural')
+  - To find facilities LOCATED IN rural areas: WHERE rural_status = 'Yes'
   - To find official Rural Health Clinics: WHERE is_rural_health_clinic = TRUE
   - These are DIFFERENT: A facility can be in an urban area but have RHC designation, or vice versa.
 
@@ -66,12 +70,49 @@ Columns:
   - source: text, always "HRSA"
 
 COMMON HRSA QUERY PATTERNS:
-1. Find rural facilities: WHERE rural_status IN ('Rural', 'Highly Rural')
+1. Find rural facilities: WHERE rural_status = 'Yes'
 2. Find FQHCs: WHERE is_federally_funded_hc = TRUE
 3. Find hospitals: WHERE num_beds > 0 OR is_hospital_based = TRUE
 4. Find sites with PA opportunities: WHERE physician_assistant_ftes > 0
 5. Find community health centers: WHERE site_category ILIKE '%community health%'
 6. Find underserved areas: Combine FQHC + rural status + low physician FTEs
+
+DISAMBIGUATION RULES:
+- "rural sites/facilities/areas" → WHERE rural_status = 'Yes'
+- "Rural Health Clinics" or "RHC" → WHERE is_rural_health_clinic = TRUE
+- "hospitals" → WHERE site_category = 'Hospital' OR num_beds > 0
+- "clinics" → WHERE site_category IN ('Federally Qualified Health Center', 'Rural Health Clinic', 'Ambulatory Surgical Center')
+- "SNF" or "skilled nursing" → WHERE site_category LIKE 'Skilled Nursing%' OR site_category = 'Nursing Facility'
+- "FQHC" or "federally qualified" → WHERE is_federally_funded_hc = TRUE
+- "large facilities" or "big hospitals" → WHERE num_beds > 100
+
+TABLE: county_population (~3,143 rows)
+Description: County-level population data from the US Census Bureau.
+Use this table to analyze demographic trends and healthcare coverage.
+Columns:
+  - fips: char(5), 5-digit county FIPS code — JOIN KEY with hrsa_sites.county_fips
+  - county_name: text, county name (e.g., "Albany County")
+  - state_fips: char(2), 2-digit state FIPS code
+  - state: char(2), 2-letter state abbreviation
+  - pop_current: integer, most recent population estimate
+  - pop_previous: integer, previous year population estimate
+  - pop_change_pct: numeric, percentage change (positive = growth, negative = decline)
+
+VIEW: county_coverage (auto-calculated, DO NOT INSERT INTO)
+Description: Joins county_population with facility-based HRSA site counts.
+Excludes Home Health Agency and Hospice from facility count (not physical access points).
+Use this view to identify underserved areas.
+Columns (all from county_population plus):
+  - facility_count: integer, number of facility-based HRSA sites in this county
+  - people_per_facility: numeric, pop_current / facility_count (NULL if no facilities)
+      Higher values = more underserved. Values > 2500 suggest underserved areas.
+
+COUNTY/COVERAGE QUERY PATTERNS:
+1. Find underserved areas: SELECT * FROM county_coverage WHERE people_per_facility > 2500 OR facility_count = 0
+2. Growing counties: WHERE pop_change_pct > 0
+3. Shrinking/declining counties: WHERE pop_change_pct < 0
+4. Counties with no facilities: WHERE facility_count = 0
+5. For coverage analysis, ALWAYS use the county_coverage view, not county_population directly
 
 TABLE: schools (858 rows)
 Description: Universities and colleges that offer PT, OT, or PA programs.
@@ -308,11 +349,11 @@ SQL: SELECT site_name, city, state, physician_assistant_ftes, site_category, lat
 
 Example 14:
 Q: "Show me hospital-based clinical sites in rural areas"
-SQL: SELECT site_name, city, state, num_beds, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE is_hospital_based = TRUE AND rural_status ILIKE '%rural%' LIMIT 500
+SQL: SELECT site_name, city, state, num_beds, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE is_hospital_based = TRUE AND rural_status = 'Yes' LIMIT 500
 
 Example 15:
 Q: "Show me rural health facilities in Vermont"
-SQL: SELECT site_name, city, state, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'VT' AND rural_status IN ('Rural', 'Highly Rural') LIMIT 500
+SQL: SELECT site_name, city, state, site_category, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'VT' AND rural_status = 'Yes' LIMIT 500
 
 Example 16:
 Q: "Find community health centers in California"
@@ -324,7 +365,7 @@ SQL: SELECT state, COUNT(*) as fqhc_count FROM hrsa_sites WHERE is_federally_fun
 
 Example 18:
 Q: "Show me hospitals in rural areas of Montana"
-SQL: SELECT site_name, city, state, num_beds, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'MT' AND num_beds > 0 AND rural_status IN ('Rural', 'Highly Rural') LIMIT 500
+SQL: SELECT site_name, city, state, num_beds, rural_status, latitude, longitude FROM hrsa_sites WHERE state = 'MT' AND num_beds > 0 AND rural_status = 'Yes' LIMIT 500
 
 Example 19:
 Q: "Find sites with PA training opportunities in New England"
@@ -352,5 +393,33 @@ SQL: SELECT site_name, address, city, state, programs, has_ot, has_pt, has_pa, l
 
 Example 25:
 Q: "Which states have the most active clinical sites?"
-SQL: SELECT state, COUNT(*) as site_count, COUNT(*) FILTER (WHERE has_ot) as ot_count, COUNT(*) FILTER (WHERE has_pt) as pt_count, COUNT(*) FILTER (WHERE has_pa) as pa_count FROM active_sites GROUP BY state ORDER BY site_count DESC`;
+SQL: SELECT state, COUNT(*) as site_count, COUNT(*) FILTER (WHERE has_ot) as ot_count, COUNT(*) FILTER (WHERE has_pt) as pt_count, COUNT(*) FILTER (WHERE has_pa) as pa_count FROM active_sites GROUP BY state ORDER BY site_count DESC
+
+Example 26:
+Q: "What are the most underserved counties in Kansas?"
+SQL: SELECT county_name, state, pop_current, facility_count, people_per_facility FROM county_coverage WHERE state = 'KS' AND (people_per_facility > 2500 OR facility_count = 0) ORDER BY people_per_facility DESC NULLS FIRST LIMIT 20
+
+Example 27:
+Q: "Which counties in North Dakota have no healthcare facilities?"
+SQL: SELECT county_name, pop_current, pop_change_pct FROM county_coverage WHERE state = 'ND' AND facility_count = 0 ORDER BY pop_current DESC
+
+Example 28:
+Q: "Compare population growth between Vermont and New Hampshire"
+SQL: SELECT state, COUNT(*) as counties, SUM(pop_current) as total_pop, ROUND(AVG(pop_change_pct), 2) as avg_change FROM county_population WHERE state IN ('VT', 'NH') GROUP BY state
+
+Example 29:
+Q: "Show me large hospitals in rural areas of New York"
+SQL: SELECT site_name, city, num_beds, latitude, longitude FROM hrsa_sites WHERE state = 'NY' AND rural_status = 'Yes' AND site_category = 'Hospital' AND num_beds > 50 ORDER BY num_beds DESC
+
+Example 30:
+Q: "Which counties have HRSA sites but are still underserved?"
+SQL: SELECT county_name, state, pop_current, facility_count, people_per_facility FROM county_coverage WHERE facility_count > 0 AND people_per_facility > 5000 ORDER BY people_per_facility DESC LIMIT 20
+
+Example 31:
+Q: "Show me counties with declining population in the Midwest"
+SQL: SELECT county_name, state, pop_current, pop_change_pct FROM county_population WHERE state IN ('IL','IN','IA','KS','MI','MN','MO','NE','ND','OH','SD','WI') AND pop_change_pct < 0 ORDER BY pop_change_pct ASC LIMIT 50
+
+Example 32:
+Q: "How many HRSA sites are in each county in Texas?"
+SQL: SELECT cp.county_name, cp.state, cp.pop_current, COUNT(h.id) as site_count FROM county_population cp LEFT JOIN hrsa_sites h ON h.county_fips = cp.fips WHERE cp.state = 'TX' GROUP BY cp.fips, cp.county_name, cp.state, cp.pop_current ORDER BY site_count DESC LIMIT 50`;
 }

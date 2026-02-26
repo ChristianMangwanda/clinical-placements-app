@@ -21,6 +21,10 @@ export default function Home() {
   // Map state
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Choropleth state - only one can be active at a time
+  const [activeChoropleth, setActiveChoropleth] = useState<"pop_change" | "coverage_ratio" | null>(null);
+  const [choroplethLoading, setChoroplethLoading] = useState(false);
+
   // AI highlight state
   const [highlightPoints, setHighlightPoints] = useState<MapPoint[]>([]);
 
@@ -148,8 +152,24 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [fetchTableData]);
 
+  // Choropleth layer keys
+  const choroplethLayers = ["pop_change", "coverage_ratio"];
+
   // Handlers
   const handleLayerToggle = (layerKey: string) => {
+    // Handle choropleth layers with mutual exclusion
+    if (choroplethLayers.includes(layerKey)) {
+      if (activeChoropleth === layerKey) {
+        // Toggle off
+        setActiveChoropleth(null);
+      } else {
+        // Toggle on (this automatically turns off the other)
+        setActiveChoropleth(layerKey as "pop_change" | "coverage_ratio");
+      }
+      return;
+    }
+
+    // Regular layer toggle
     setLayerVisibility((prev) => ({
       ...prev,
       [layerKey]: !prev[layerKey],
@@ -208,6 +228,13 @@ export default function Home() {
     layerColors[layer.layer_key] = layer.color || "#E74C3C";
   });
 
+  // Merge choropleth visibility with layer visibility for sidebar display
+  const effectiveLayerVisibility: LayerVisibility = {
+    ...layerVisibility,
+    pop_change: activeChoropleth === "pop_change",
+    coverage_ratio: activeChoropleth === "coverage_ratio",
+  };
+
   if (layersLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-green-deep">
@@ -226,7 +253,7 @@ export default function Home() {
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           layers={layers}
-          layerVisibility={layerVisibility}
+          layerVisibility={effectiveLayerVisibility}
           onLayerToggle={handleLayerToggle}
           stateFilter={stateFilter}
           professionFilter={professionFilter}
@@ -246,6 +273,8 @@ export default function Home() {
               flyToLocation={flyToLocation}
               highlightPoints={highlightPoints}
               onClearHighlights={handleClearHighlights}
+              activeChoropleth={activeChoropleth}
+              onChoroplethLoadingChange={setChoroplethLoading}
             />
           </div>
 

@@ -6,6 +6,8 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { X } from "lucide-react";
 import type { Layer, LayerVisibility, MapBounds, MapPoint } from "@/lib/types";
+import ChoroplethLayer from "./ChoroplethLayer";
+import MapLegend from "./MapLegend";
 
 // Site properties from the API
 interface SiteProperties {
@@ -84,6 +86,8 @@ interface MapProps {
   flyToLocation?: { lat: number; lng: number } | null;
   highlightPoints?: MapPoint[];
   onClearHighlights?: () => void;
+  activeChoropleth?: "pop_change" | "coverage_ratio" | null;
+  onChoroplethLoadingChange?: (loading: boolean) => void;
 }
 
 // Component to handle map events
@@ -194,6 +198,8 @@ export default function MapClient({
   flyToLocation,
   highlightPoints = [],
   onClearHighlights,
+  activeChoropleth = null,
+  onChoroplethLoadingChange,
 }: MapProps) {
   const [sitesData, setSitesData] = useState<Record<string, SiteFeatureCollection>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
@@ -490,7 +496,19 @@ export default function MapClient({
             </Popup>
           </Marker>
         ))}
+
+        {/* Choropleth layer - renders below point markers */}
+        {activeChoropleth && (
+          <ChoroplethLayer
+            layer={activeChoropleth}
+            visible={true}
+            onLoadingChange={onChoroplethLoadingChange}
+          />
+        )}
       </MapContainer>
+
+      {/* Map Legend - outside MapContainer but positioned over map */}
+      <MapLegend layer={activeChoropleth} />
     </div>
   );
 }

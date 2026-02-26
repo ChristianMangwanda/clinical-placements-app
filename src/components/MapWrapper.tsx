@@ -20,6 +20,8 @@ interface MapWrapperProps {
   flyToLocation?: { lat: number; lng: number } | null;
   highlightPoints?: MapPoint[];
   onClearHighlights?: () => void;
+  activeChoropleth?: "pop_change" | "coverage_ratio" | null;
+  onChoroplethLoadingChange?: (loading: boolean) => void;
 }
 
 export default function MapWrapper(props: MapWrapperProps) {
