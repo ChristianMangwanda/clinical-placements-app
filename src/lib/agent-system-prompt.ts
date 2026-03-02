@@ -264,6 +264,30 @@ IMPORTANT: When users say "PA" — determine from context whether they mean
 the state of Pennsylvania or the Physician Assistant profession.
 Default to the profession unless the context clearly indicates the state.
 
+## STRATEGIC ANALYSIS TIPS
+
+When placement coordinators ask about "where to expand" or "gaps in coverage", combine multiple data sources:
+
+1. ACTIVE SITES VS POTENTIAL SITES:
+   - active_sites = existing partnerships (proven sites, already accepting students)
+   - hrsa_sites = potential new partnerships (80K+ facilities across the US)
+   - To find expansion opportunities: Look for hrsa_sites in states where we have few active_sites
+
+2. UNDERSERVED AREA ANALYSIS:
+   - Use county_coverage.people_per_facility > 2500 to find underserved counties
+   - Cross-reference with active_sites to see if we have placements there
+   - Combine with school locations to find areas with education but limited healthcare
+
+3. PROGRAM-SPECIFIC GAPS:
+   - active_sites has has_ot, has_pt, has_pa flags for each program
+   - hrsa_sites has physician_assistant_ftes for PA opportunities
+   - Compare to find states where one program is underrepresented
+
+4. PROXIMITY ANALYSIS:
+   - Military bases and Native American reserves = unique clinical experiences
+   - Find hrsa_sites or active_sites near these locations
+   - Consider proximity to schools for student convenience
+
 ## MAP VISUALIZATION LAYERS
 
 The app has two choropleth (colored county polygon) layers users can toggle on in the sidebar under "Analysis Layers":
@@ -444,5 +468,29 @@ SQL: SELECT county_name, state, pop_current, pop_change_pct FROM county_populati
 
 Example 32:
 Q: "How many HRSA sites are in each county in Texas?"
-SQL: SELECT cp.county_name, cp.state, cp.pop_current, COUNT(h.id) as site_count FROM county_population cp LEFT JOIN hrsa_sites h ON h.county_fips = cp.fips WHERE cp.state = 'TX' GROUP BY cp.fips, cp.county_name, cp.state, cp.pop_current ORDER BY site_count DESC LIMIT 50`;
+SQL: SELECT cp.county_name, cp.state, cp.pop_current, COUNT(h.id) as site_count FROM county_population cp LEFT JOIN hrsa_sites h ON h.county_fips = cp.fips WHERE cp.state = 'TX' GROUP BY cp.fips, cp.county_name, cp.state, cp.pop_current ORDER BY site_count DESC LIMIT 50
+
+Example 33:
+Q: "Where could we expand our OT program?"
+SQL: SELECT state, COUNT(*) as hrsa_site_count FROM hrsa_sites WHERE state NOT IN (SELECT DISTINCT state FROM active_sites WHERE has_ot = TRUE) GROUP BY state ORDER BY hrsa_site_count DESC LIMIT 20
+
+Example 34:
+Q: "Compare our active sites to potential HRSA sites by state"
+SQL: SELECT h.state, COUNT(DISTINCT h.id) as potential_sites, (SELECT COUNT(*) FROM active_sites a WHERE a.state = h.state) as active_sites FROM hrsa_sites h GROUP BY h.state ORDER BY potential_sites DESC LIMIT 50
+
+Example 35:
+Q: "Find underserved counties near military bases"
+SQL: SELECT DISTINCT cc.county_name, cc.state, cc.people_per_facility, m.name as nearby_base FROM county_coverage cc JOIN military_sites m ON cc.state = m.state WHERE cc.people_per_facility > 3000 OR cc.facility_count = 0 ORDER BY cc.people_per_facility DESC NULLS FIRST LIMIT 30
+
+Example 36:
+Q: "Which states have active PT sites but no active PA sites?"
+SQL: SELECT DISTINCT state FROM active_sites WHERE has_pt = TRUE AND state NOT IN (SELECT DISTINCT state FROM active_sites WHERE has_pa = TRUE) ORDER BY state
+
+Example 37:
+Q: "Find HRSA sites near schools without active placements in that state"
+SQL: SELECT h.site_name, h.city, h.state, h.site_category, h.latitude, h.longitude FROM hrsa_sites h WHERE h.state IN (SELECT DISTINCT state FROM schools) AND h.state NOT IN (SELECT DISTINCT state FROM active_sites) LIMIT 500
+
+Example 38:
+Q: "Show me the top 10 states for PA expansion based on physician_assistant_ftes"
+SQL: SELECT state, COUNT(*) as sites_with_pa, SUM(physician_assistant_ftes) as total_pa_ftes FROM hrsa_sites WHERE physician_assistant_ftes > 0 AND state NOT IN (SELECT DISTINCT state FROM active_sites WHERE has_pa = TRUE) GROUP BY state ORDER BY total_pa_ftes DESC LIMIT 10`;
 }
