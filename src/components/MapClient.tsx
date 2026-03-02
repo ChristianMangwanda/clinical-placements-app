@@ -337,117 +337,156 @@ export default function MapClient({
                   {feature.properties.name}
                 </Tooltip>
 
-                {/* Click popup */}
+                {/* Click popup - Dark themed */}
                 <Popup>
-                  <div className="min-w-[240px] max-w-[320px] p-1">
-                    <h3 className="font-semibold text-[#0D433B] text-base mb-2">
-                      {feature.properties.name}
-                    </h3>
+                  <div className="min-w-[260px] max-w-[340px] p-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <h3 className="font-semibold text-white text-base leading-tight">
+                        {feature.properties.name}
+                      </h3>
+                      <span
+                        className="flex-shrink-0 text-xs font-medium px-2 py-1 rounded-md"
+                        style={{
+                          backgroundColor: `${layer.color || "#E74C3C"}25`,
+                          color: layer.color || "#E74C3C",
+                        }}
+                      >
+                        {layer.display_name}
+                      </span>
+                    </div>
+
+                    {/* Divider */}
+                    <div className="h-px bg-gradient-to-r from-transparent via-[#FAC922]/30 to-transparent mb-3" />
 
                     {/* Schools - show programs */}
                     {feature.properties.professions && feature.properties.professions.length > 0 && (
-                      <p className="text-sm text-gray-600 mb-1">
-                        <span className="font-medium">Programs:</span> {feature.properties.professions.join(", ")}
-                      </p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-sm text-white/60">Programs:</span>
+                        <div className="flex gap-1.5">
+                          {feature.properties.professions.map((p: string) => (
+                            <span
+                              key={p}
+                              className="px-2 py-0.5 bg-[#FAC922]/20 text-[#FAC922] text-xs font-semibold rounded"
+                            >
+                              {p}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
                     )}
 
                     {/* HRSA sites - show extended details */}
                     {layer.layer_key === "hrsa_sites" && (
-                      <div className="text-sm space-y-1">
+                      <div className="text-sm space-y-2">
                         {feature.properties.city && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Location:</span> {feature.properties.city}, {feature.properties.state}
+                          <p className="text-white/80">
+                            <span className="text-white/50">Location:</span> {feature.properties.city}, {feature.properties.state}
                           </p>
                         )}
                         {feature.properties.site_category && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Category:</span> {feature.properties.site_category}
+                          <p className="text-white/80">
+                            <span className="text-white/50">Category:</span> {feature.properties.site_category}
                           </p>
                         )}
                         {feature.properties.site_type && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Type:</span> {feature.properties.site_type}
+                          <p className="text-white/80">
+                            <span className="text-white/50">Type:</span> {feature.properties.site_type}
                           </p>
                         )}
-                        {(feature.properties.physician_ftes !== undefined && feature.properties.physician_ftes > 0) && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Physician FTEs:</span> {feature.properties.physician_ftes}
-                          </p>
+
+                        {/* Stats row */}
+                        {((feature.properties.physician_ftes !== undefined && feature.properties.physician_ftes > 0) ||
+                          (feature.properties.physician_assistant_ftes !== undefined && feature.properties.physician_assistant_ftes > 0) ||
+                          (feature.properties.num_beds !== undefined && feature.properties.num_beds > 0)) && (
+                          <div className="flex gap-4 pt-1">
+                            {(feature.properties.physician_ftes !== undefined && feature.properties.physician_ftes > 0) && (
+                              <div className="text-center">
+                                <div className="text-[#FAC922] font-semibold">{feature.properties.physician_ftes}</div>
+                                <div className="text-white/40 text-xs">Physician FTEs</div>
+                              </div>
+                            )}
+                            {(feature.properties.physician_assistant_ftes !== undefined && feature.properties.physician_assistant_ftes > 0) && (
+                              <div className="text-center">
+                                <div className="text-[#FAC922] font-semibold">{feature.properties.physician_assistant_ftes}</div>
+                                <div className="text-white/40 text-xs">PA FTEs</div>
+                              </div>
+                            )}
+                            {(feature.properties.num_beds !== undefined && feature.properties.num_beds > 0) && (
+                              <div className="text-center">
+                                <div className="text-[#FAC922] font-semibold">{feature.properties.num_beds}</div>
+                                <div className="text-white/40 text-xs">Beds</div>
+                              </div>
+                            )}
+                          </div>
                         )}
-                        {(feature.properties.physician_assistant_ftes !== undefined && feature.properties.physician_assistant_ftes > 0) && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">PA FTEs:</span> {feature.properties.physician_assistant_ftes}
-                          </p>
-                        )}
-                        {(feature.properties.num_beds !== undefined && feature.properties.num_beds > 0) && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Beds:</span> {feature.properties.num_beds}
-                          </p>
-                        )}
-                        {feature.properties.rural_status && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Rural Status:</span> {feature.properties.rural_status}
-                          </p>
-                        )}
+
                         {/* Badges for special designations */}
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {feature.properties.is_federally_funded_hc && (
-                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded">
-                              FQHC
-                            </span>
-                          )}
-                          {feature.properties.is_hospital_based && (
-                            <span className="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-0.5 rounded">
-                              Hospital-Based
-                            </span>
-                          )}
-                          {feature.properties.is_rural_health_clinic && (
-                            <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded">
-                              Rural Health Clinic
-                            </span>
-                          )}
-                        </div>
+                        {(feature.properties.is_federally_funded_hc || feature.properties.is_hospital_based || feature.properties.is_rural_health_clinic) && (
+                          <div className="flex flex-wrap gap-1.5 pt-2 mt-2 border-t border-white/10">
+                            {feature.properties.is_federally_funded_hc && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-500/20 text-blue-300 text-xs font-medium rounded-md">
+                                FQHC
+                              </span>
+                            )}
+                            {feature.properties.is_hospital_based && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-medium rounded-md">
+                                Hospital
+                              </span>
+                            )}
+                            {feature.properties.is_rural_health_clinic && (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-medium rounded-md">
+                                Rural Clinic
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {feature.properties.rural_status && (
+                          <p className="text-white/60 text-xs pt-1">
+                            Rural Status: {feature.properties.rural_status}
+                          </p>
+                        )}
                       </div>
                     )}
 
                     {/* Active Sites - show clinical placement details */}
                     {layer.layer_key === "active_sites" && (
-                      <div className="text-sm space-y-1">
-                        {feature.properties.address && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Address:</span> {feature.properties.address}
-                          </p>
-                        )}
+                      <div className="text-sm space-y-2">
                         {feature.properties.city && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Location:</span> {feature.properties.city}, {feature.properties.state}
+                          <p className="text-white/80">
+                            <span className="text-white/50">Location:</span> {feature.properties.city}, {feature.properties.state}
                           </p>
                         )}
-                        {feature.properties.programs && (
-                          <p className="text-gray-600">
-                            <span className="font-medium">Programs:</span> {feature.properties.programs}
+                        {feature.properties.address && (
+                          <p className="text-white/80">
+                            <span className="text-white/50">Address:</span> {feature.properties.address}
                           </p>
                         )}
+
                         {/* Program badges */}
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {feature.properties.has_ot && (
-                            <span className="inline-block bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded font-medium">
-                              OT
-                            </span>
-                          )}
-                          {feature.properties.has_pt && (
-                            <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded font-medium">
-                              PT
-                            </span>
-                          )}
-                          {feature.properties.has_pa && (
-                            <span className="inline-block bg-green-100 text-green-800 text-xs px-2 py-0.5 rounded font-medium">
-                              PA
-                            </span>
-                          )}
-                        </div>
+                        {(feature.properties.has_ot || feature.properties.has_pt || feature.properties.has_pa) && (
+                          <div className="flex flex-wrap gap-1.5 pt-1">
+                            {feature.properties.has_ot && (
+                              <span className="px-2.5 py-1 bg-amber-500/20 text-amber-300 text-xs font-semibold rounded-md">
+                                OT
+                              </span>
+                            )}
+                            {feature.properties.has_pt && (
+                              <span className="px-2.5 py-1 bg-blue-500/20 text-blue-300 text-xs font-semibold rounded-md">
+                                PT
+                              </span>
+                            )}
+                            {feature.properties.has_pa && (
+                              <span className="px-2.5 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-semibold rounded-md">
+                                PA
+                              </span>
+                            )}
+                          </div>
+                        )}
+
                         {feature.properties.source && (
-                          <p className="text-xs text-gray-400 mt-2">
+                          <p className="text-white/40 text-xs pt-1">
                             Source: {feature.properties.source}
                           </p>
                         )}
@@ -456,10 +495,7 @@ export default function MapClient({
 
                     {/* Default for other layers */}
                     {layer.layer_key !== "hrsa_sites" && layer.layer_key !== "active_sites" && !feature.properties.professions && (
-                      <>
-                        <p className="text-sm text-gray-600">{layer.display_name}</p>
-                        <p className="text-sm text-gray-500">{feature.properties.state}</p>
-                      </>
+                      <p className="text-sm text-white/70">{feature.properties.state}</p>
                     )}
                   </div>
                 </Popup>
@@ -482,15 +518,18 @@ export default function MapClient({
             </Tooltip>
 
             <Popup>
-              <div className="min-w-[180px] p-1">
-                <h3 className="font-semibold text-[#0D433B] text-base mb-1">
-                  {point.name}
-                </h3>
+              <div className="min-w-[200px] p-4">
+                <div className="flex items-start gap-2 mb-2">
+                  <div className="w-2 h-2 rounded-full bg-[#FAC922] mt-1.5 flex-shrink-0" />
+                  <h3 className="font-semibold text-white text-base leading-tight">
+                    {point.name}
+                  </h3>
+                </div>
                 {point.label && (
-                  <p className="text-sm text-gray-600">{point.label}</p>
+                  <p className="text-sm text-white/70 ml-4">{point.label}</p>
                 )}
-                <p className="text-xs text-gray-400 mt-1">
-                  From AI query result
+                <p className="text-xs text-[#FAC922]/60 mt-2 ml-4">
+                  AI Query Result
                 </p>
               </div>
             </Popup>

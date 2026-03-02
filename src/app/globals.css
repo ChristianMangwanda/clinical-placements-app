@@ -188,3 +188,224 @@ body {
     transform: scale(1.1);
   }
 }
+
+/* ============================================
+   PREMIUM UI POLISH - Apple/Perplexity Style
+   ============================================ */
+
+/* Enhanced CSS Custom Properties */
+:root {
+  /* Apple-style easing functions */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out-expo: cubic-bezier(0.87, 0, 0.13, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Standard durations */
+  --duration-fast: 150ms;
+  --duration-normal: 250ms;
+  --duration-slow: 400ms;
+
+  /* Refined shadows */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.18);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.24);
+  --shadow-glow-gold: 0 0 20px rgba(250, 201, 34, 0.25);
+  --shadow-glow-gold-sm: 0 0 8px rgba(250, 201, 34, 0.15);
+
+  /* Glassmorphism */
+  --glass-bg: rgba(9, 46, 40, 0.85);
+  --glass-border: rgba(250, 201, 34, 0.12);
+  --glass-blur: 12px;
+}
+
+/* Premium Focus Rings (Gold Glow) */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 0 0 3px rgba(250, 201, 34, 0.15), inset 0 0 0 1px var(--gold) !important;
+}
+
+button:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 2px var(--green-deep), 0 0 0 4px var(--gold) !important;
+}
+
+/* Skeleton Loading with Shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(20, 92, 82, 0.3) 25%,
+    rgba(20, 92, 82, 0.5) 50%,
+    rgba(20, 92, 82, 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: 4px;
+}
+
+.skeleton-text {
+  height: 1em;
+  margin-bottom: 0.5em;
+}
+
+.skeleton-badge {
+  height: 24px;
+  width: 80px;
+  border-radius: 9999px;
+}
+
+/* Dropdown Animations */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-enter {
+  animation: dropdown-in var(--duration-normal) var(--ease-out-expo) forwards;
+}
+
+/* Staggered List Animation */
+@keyframes list-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.list-animate > * {
+  animation: list-item-in var(--duration-normal) var(--ease-out-expo) backwards;
+}
+
+.list-animate > *:nth-child(1) { animation-delay: 0ms; }
+.list-animate > *:nth-child(2) { animation-delay: 30ms; }
+.list-animate > *:nth-child(3) { animation-delay: 60ms; }
+.list-animate > *:nth-child(4) { animation-delay: 90ms; }
+.list-animate > *:nth-child(5) { animation-delay: 120ms; }
+.list-animate > *:nth-child(6) { animation-delay: 150ms; }
+.list-animate > *:nth-child(7) { animation-delay: 180ms; }
+.list-animate > *:nth-child(8) { animation-delay: 210ms; }
+
+/* Dark Themed Leaflet Popups */
+.leaflet-popup-content-wrapper {
+  background: var(--green-deep) !important;
+  color: var(--white) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-lg) !important;
+  border: 1px solid var(--glass-border) !important;
+  padding: 0 !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  color: var(--white) !important;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif) !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px;
+}
+
+.leaflet-popup-tip {
+  background: var(--green-deep) !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-close-button {
+  color: var(--text-muted) !important;
+  font-size: 20px !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  top: 8px !important;
+  right: 8px !important;
+  transition: color var(--duration-fast) !important;
+}
+
+.leaflet-popup-close-button:hover {
+  color: var(--gold) !important;
+}
+
+/* Dark Themed Leaflet Tooltips */
+.leaflet-tooltip {
+  background: var(--green-deep) !important;
+  color: var(--white) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 8px !important;
+  box-shadow: var(--shadow-md) !important;
+  padding: 8px 12px !important;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif) !important;
+  font-size: 13px !important;
+}
+
+.leaflet-tooltip-top::before,
+.leaflet-tooltip-bottom::before,
+.leaflet-tooltip-left::before,
+.leaflet-tooltip-right::before {
+  border-color: transparent !important;
+}
+
+/* Enhanced Card with Glassmorphism */
+.card-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-md);
+  transition: all var(--duration-normal) var(--ease-out-expo);
+}
+
+.card-glass:hover {
+  border-color: rgba(250, 201, 34, 0.2);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Icon Button Style */
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out-expo);
+}
+
+.btn-icon:hover {
+  background: rgba(250, 201, 34, 0.1);
+  color: var(--gold);
+  transform: scale(1.05);
+}
+
+.btn-icon:active {
+  transform: scale(0.95);
+}

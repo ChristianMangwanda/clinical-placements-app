@@ -1,6 +1,6 @@
 "use client";
 
-import { Layers, Eye, EyeOff, BarChart3 } from "lucide-react";
+import { Layers, BarChart3 } from "lucide-react";
 import type { Layer, LayerVisibility } from "@/lib/types";
 
 interface LayerToggleProps {
@@ -29,29 +29,72 @@ export default function LayerToggle({
       <button
         key={layer.layer_key}
         onClick={() => onToggle(layer.layer_key)}
-        className={`w-full flex items-center gap-3 p-2.5 rounded transition-all ${
-          isVisible
-            ? "bg-green-light/30 border border-gold/20"
-            : "bg-green-deep/50 border border-white/5 opacity-60"
-        } hover:border-gold/30`}
+        className={`
+          group w-full flex items-center gap-3 p-3 rounded-xl
+          transition-all duration-200
+          ${isVisible
+            ? "bg-green-light/20 border border-gold/20"
+            : "bg-green-deep/40 border border-white/5 hover:border-white/10 hover:bg-green-deep/60"}
+        `}
+        style={{
+          transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
       >
-        {/* Color indicator */}
-        <div
-          className={`w-3 h-3 flex-shrink-0 ${isAnalysisLayer ? "rounded" : "rounded-full"}`}
-          style={{ backgroundColor: layer.color || "#E74C3C" }}
-        />
+        {/* Color indicator with pulse on active */}
+        <div className="relative">
+          <div
+            className={`
+              w-3.5 h-3.5 flex-shrink-0
+              ${isAnalysisLayer ? "rounded-sm" : "rounded-full"}
+              transition-all duration-200
+              ${isVisible ? "scale-110" : "scale-100 opacity-50 group-hover:opacity-70"}
+            `}
+            style={{ backgroundColor: layer.color || "#E74C3C" }}
+          />
+          {/* Subtle glow when active */}
+          {isVisible && (
+            <div
+              className="absolute inset-0 rounded-full opacity-40 blur-sm"
+              style={{ backgroundColor: layer.color || "#E74C3C" }}
+            />
+          )}
+        </div>
 
         {/* Layer name */}
-        <span className="flex-1 text-left text-sm text-white">
+        <span className={`
+          flex-1 text-left text-sm font-medium
+          transition-colors duration-200
+          ${isVisible ? "text-white" : "text-white/60 group-hover:text-white/80"}
+        `}>
           {layer.display_name}
         </span>
 
-        {/* Visibility icon */}
-        {isVisible ? (
-          <Eye className="w-4 h-4 text-gold" />
-        ) : (
-          <EyeOff className="w-4 h-4 text-text-muted" />
-        )}
+        {/* iOS-style toggle switch */}
+        <div
+          className={`
+            relative w-11 h-[26px] rounded-full flex-shrink-0
+            transition-all duration-200
+            ${isVisible
+              ? "bg-gold"
+              : "bg-white/15 group-hover:bg-white/20"}
+          `}
+          style={{
+            transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+            boxShadow: isVisible ? '0 0 12px rgba(250, 201, 34, 0.3)' : 'none',
+          }}
+        >
+          <div
+            className={`
+              absolute top-[3px] w-5 h-5 rounded-full bg-white
+              transition-all duration-200
+              ${isVisible ? "left-[calc(100%-23px)]" : "left-[3px]"}
+            `}
+            style={{
+              transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+              boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
+            }}
+          />
+        </div>
       </button>
     );
   };
@@ -71,7 +114,7 @@ export default function LayerToggle({
       {/* Analysis Layers Section */}
       {analysisLayers.length > 0 && (
         <>
-          <div className="flex items-center gap-2 mt-6 mb-3">
+          <div className="flex items-center gap-2 mt-6 mb-3 pt-4 border-t border-white/5">
             <BarChart3 className="w-4 h-4 text-gold" />
             <h4 className="text-sm font-medium text-text-light">Analysis Layers</h4>
           </div>
@@ -80,16 +123,11 @@ export default function LayerToggle({
             {analysisLayers.map(renderLayerButton)}
           </div>
 
-          <p className="text-xs text-text-muted mt-2 italic">
+          <p className="text-xs text-text-muted mt-3 pl-1">
             Only one analysis layer at a time
           </p>
         </>
       )}
-
-      {/* Legend hint */}
-      <p className="text-xs text-text-muted mt-4">
-        Click to toggle layer visibility
-      </p>
     </div>
   );
 }
