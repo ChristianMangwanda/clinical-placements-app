@@ -15,25 +15,6 @@ const NAME_COLUMNS: Record<string, string> = {
   active_sites: "site_name",
 };
 
-// Extended HRSA site interface
-interface HrsaSiteRow {
-  id: number;
-  name: string;
-  state: string;
-  latitude: number;
-  longitude: number;
-  site_category?: string;
-  city?: string;
-  physician_ftes?: number;
-  physician_assistant_ftes?: number;
-  num_beds?: number;
-  is_federally_funded_hc?: boolean;
-  is_hospital_based?: boolean;
-  site_type?: string;
-  is_rural_health_clinic?: boolean;
-  rural_status?: string;
-}
-
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
@@ -181,7 +162,7 @@ export async function GET(request: NextRequest) {
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
-          coordinates: [school.longitude, school.latitude] as [number, number],
+          coordinates: [Number(school.longitude), Number(school.latitude)] as [number, number],
         },
         properties: {
           id: school.id,
@@ -197,7 +178,7 @@ export async function GET(request: NextRequest) {
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
-          coordinates: [site.longitude, site.latitude] as [number, number],
+          coordinates: [Number(site.longitude), Number(site.latitude)] as [number, number],
         },
         properties: {
           id: site.id,
@@ -223,7 +204,7 @@ export async function GET(request: NextRequest) {
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
-          coordinates: [site.longitude, site.latitude] as [number, number],
+          coordinates: [Number(site.longitude), Number(site.latitude)] as [number, number],
         },
         properties: {
           id: site.id,
@@ -245,7 +226,7 @@ export async function GET(request: NextRequest) {
         type: "Feature" as const,
         geometry: {
           type: "Point" as const,
-          coordinates: [site.longitude, site.latitude] as [number, number],
+          coordinates: [Number(site.longitude), Number(site.latitude)] as [number, number],
         },
         properties: {
           id: site.id,
