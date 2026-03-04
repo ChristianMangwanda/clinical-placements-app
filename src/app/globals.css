@@ -409,3 +409,53 @@ button:focus-visible {
 .btn-icon:active {
   transform: scale(0.95);
 }
+
+/* ============================================
+   RADIUS ANALYSIS TOOL STYLES
+   ============================================ */
+
+/* Radius mode cursor */
+.radius-mode .leaflet-container {
+  cursor: crosshair !important;
+}
+
+.radius-mode .leaflet-marker-icon,
+.radius-mode .leaflet-marker-shadow {
+  cursor: crosshair !important;
+}
+
+/* Radius overlay labels */
+.radius-label {
+  background: var(--green-deep) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 6px !important;
+  padding: 4px 8px !important;
+  box-shadow: var(--shadow-sm) !important;
+  font-size: 12px !important;
+  font-family: var(--font-body, 'Source Sans 3', sans-serif) !important;
+  white-space: nowrap !important;
+}
+
+.radius-label::before {
+  display: none !important;
+}
+
+/* Radius origin tooltip */
+.radius-origin-tooltip {
+  background: var(--green-deep) !important;
+  border: 1px solid var(--gold) !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+  box-shadow: var(--shadow-glow-gold-sm) !important;
+  font-size: 11px !important;
+}
+
+.radius-origin-tooltip::before {
+  display: none !important;
+}
+
+/* Radius origin marker */
+.radius-origin-marker {
+  background: transparent !important;
+  border: none !important;
+}

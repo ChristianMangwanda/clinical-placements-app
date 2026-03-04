@@ -10,7 +10,9 @@ interface LayerToggleProps {
 }
 
 // Choropleth layer keys for grouping
-const ANALYSIS_LAYER_KEYS = ["pop_change", "coverage_ratio"];
+const COUNTY_ANALYSIS_KEYS = ["pop_change", "coverage_ratio"];
+const STATE_ANALYSIS_KEYS = ["gdp_growth", "healthcare_employment"];
+const ALL_ANALYSIS_KEYS = [...COUNTY_ANALYSIS_KEYS, ...STATE_ANALYSIS_KEYS];
 
 export default function LayerToggle({
   layers,
@@ -18,12 +20,13 @@ export default function LayerToggle({
   onToggle,
 }: LayerToggleProps) {
   // Separate regular layers from analysis layers
-  const regularLayers = layers.filter(l => !ANALYSIS_LAYER_KEYS.includes(l.layer_key));
-  const analysisLayers = layers.filter(l => ANALYSIS_LAYER_KEYS.includes(l.layer_key));
+  const regularLayers = layers.filter(l => !ALL_ANALYSIS_KEYS.includes(l.layer_key));
+  const countyAnalysisLayers = layers.filter(l => COUNTY_ANALYSIS_KEYS.includes(l.layer_key));
+  const stateAnalysisLayers = layers.filter(l => STATE_ANALYSIS_KEYS.includes(l.layer_key));
 
   const renderLayerButton = (layer: Layer) => {
     const isVisible = layerVisibility[layer.layer_key] ?? layer.default_visible;
-    const isAnalysisLayer = ANALYSIS_LAYER_KEYS.includes(layer.layer_key);
+    const isAnalysisLayer = ALL_ANALYSIS_KEYS.includes(layer.layer_key);
 
     return (
       <button
@@ -112,18 +115,38 @@ export default function LayerToggle({
       </div>
 
       {/* Analysis Layers Section */}
-      {analysisLayers.length > 0 && (
+      {(countyAnalysisLayers.length > 0 || stateAnalysisLayers.length > 0) && (
         <>
           <div className="flex items-center gap-2 mt-6 mb-3 pt-4 border-t border-white/5">
             <BarChart3 className="w-4 h-4 text-gold" />
             <h4 className="text-sm font-medium text-text-light">Analysis Layers</h4>
           </div>
 
-          <div className="space-y-2">
-            {analysisLayers.map(renderLayerButton)}
-          </div>
+          {/* County Level */}
+          {countyAnalysisLayers.length > 0 && (
+            <div className="mb-3">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-2 pl-1">
+                County Level
+              </p>
+              <div className="space-y-2">
+                {countyAnalysisLayers.map(renderLayerButton)}
+              </div>
+            </div>
+          )}
 
-          <p className="text-xs text-text-muted mt-3 pl-1">
+          {/* State Level */}
+          {stateAnalysisLayers.length > 0 && (
+            <div className="mb-2">
+              <p className="text-xs text-text-muted uppercase tracking-wider mb-2 pl-1">
+                State Level
+              </p>
+              <div className="space-y-2">
+                {stateAnalysisLayers.map(renderLayerButton)}
+              </div>
+            </div>
+          )}
+
+          <p className="text-xs text-text-muted mt-3 pl-1 pt-2 border-t border-white/5">
             Only one analysis layer at a time
           </p>
         </>

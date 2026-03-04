@@ -21,12 +21,15 @@ export default function Home() {
   // Map state
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
 
-  // Choropleth state - only one can be active at a time
-  const [activeChoropleth, setActiveChoropleth] = useState<"pop_change" | "coverage_ratio" | null>(null);
+  // Choropleth state - only one can be active at a time (4-way mutual exclusion)
+  const [activeChoropleth, setActiveChoropleth] = useState<"pop_change" | "coverage_ratio" | "gdp_growth" | "healthcare_employment" | null>(null);
   const [choroplethLoading, setChoroplethLoading] = useState(false);
 
   // AI highlight state
   const [highlightPoints, setHighlightPoints] = useState<MapPoint[]>([]);
+
+  // Radius analysis mode
+  const [radiusMode, setRadiusMode] = useState(false);
 
   // AI mode state - for toggling layers and showing AI results in table
   const [isAiMode, setIsAiMode] = useState(false);
@@ -152,19 +155,19 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [fetchTableData]);
 
-  // Choropleth layer keys
-  const choroplethLayers = ["pop_change", "coverage_ratio"];
+  // Choropleth layer keys - all 4 are mutually exclusive
+  const choroplethLayers = ["pop_change", "coverage_ratio", "gdp_growth", "healthcare_employment"];
 
   // Handlers
   const handleLayerToggle = (layerKey: string) => {
-    // Handle choropleth layers with mutual exclusion
+    // Handle choropleth layers with mutual exclusion (only one active at a time)
     if (choroplethLayers.includes(layerKey)) {
       if (activeChoropleth === layerKey) {
         // Toggle off
         setActiveChoropleth(null);
       } else {
-        // Toggle on (this automatically turns off the other)
-        setActiveChoropleth(layerKey as "pop_change" | "coverage_ratio");
+        // Toggle on (this automatically turns off all others)
+        setActiveChoropleth(layerKey as "pop_change" | "coverage_ratio" | "gdp_growth" | "healthcare_employment");
       }
       return;
     }
@@ -233,6 +236,8 @@ export default function Home() {
     ...layerVisibility,
     pop_change: activeChoropleth === "pop_change",
     coverage_ratio: activeChoropleth === "coverage_ratio",
+    gdp_growth: activeChoropleth === "gdp_growth",
+    healthcare_employment: activeChoropleth === "healthcare_employment",
   };
 
   if (layersLoading) {
@@ -275,6 +280,8 @@ export default function Home() {
               onClearHighlights={handleClearHighlights}
               activeChoropleth={activeChoropleth}
               onChoroplethLoadingChange={setChoroplethLoading}
+              radiusMode={radiusMode}
+              onRadiusModeChange={setRadiusMode}
             />
           </div>
 

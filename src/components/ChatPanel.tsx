@@ -16,10 +16,10 @@ interface ChatPanelProps {
 // Starter questions to help users get started
 const STARTER_QUESTIONS = [
   "Which states have no OT program?",
-  "Show me military bases in North Dakota",
+  "Find hospitals within 30 miles of Albany, NY",
   "What schools offer all three programs?",
-  "How many clinical sites are in Kansas?",
-  "Where are Native American reserves in the Southwest?",
+  "Show me HRSA sites within 60 minutes of Clarkson University",
+  "Where are the closest active sites to 42.7, -73.8?",
 ];
 
 export default function ChatPanel({ onQueryResult }: ChatPanelProps) {

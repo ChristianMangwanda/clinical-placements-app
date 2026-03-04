@@ -1,7 +1,7 @@
 "use client";
 
 interface MapLegendProps {
-  layer: "pop_change" | "coverage_ratio" | null;
+  layer: "pop_change" | "coverage_ratio" | "gdp_growth" | "healthcare_employment" | null;
 }
 
 interface LegendItem {
@@ -28,13 +28,70 @@ const coverageLegend: LegendItem[] = [
   { color: "#4A235A", label: "No facilities" },
 ];
 
+const gdpGrowthLegend: LegendItem[] = [
+  { color: "#1E8449", label: "> +6% (Exceptional)" },
+  { color: "#27AE60", label: "+4% to +6% (Strong)" },
+  { color: "#D5F5E3", label: "+2% to +4% (Average)" },
+  { color: "#FADBD8", label: "+1% to +2% (Below average)" },
+  { color: "#E74C3C", label: "0% to +1% (Slow)" },
+  { color: "#C0392B", label: "< 0% (Declining)" },
+  { color: "#CCCCCC", label: "No data" },
+];
+
+const healthcareEmploymentLegend: LegendItem[] = [
+  { color: "#1A5276", label: "> 18% (High concentration)" },
+  { color: "#2471A3", label: "15% - 18% (Above average)" },
+  { color: "#3498DB", label: "13% - 15% (Average ~14%)" },
+  { color: "#85C1E9", label: "10% - 13% (Below average)" },
+  { color: "#D6EAF8", label: "< 10% (Low concentration)" },
+  { color: "#CCCCCC", label: "No data" },
+];
+
+interface LegendConfig {
+  title: string;
+  subtitle: string;
+  items: LegendItem[];
+}
+
+function getLegendConfig(layer: string): LegendConfig {
+  switch (layer) {
+    case "pop_change":
+      return {
+        title: "Population Change",
+        subtitle: "(Year-over-year %)",
+        items: popChangeLegend,
+      };
+    case "coverage_ratio":
+      return {
+        title: "Healthcare Coverage",
+        subtitle: "(People per facility)",
+        items: coverageLegend,
+      };
+    case "gdp_growth":
+      return {
+        title: "GDP Growth",
+        subtitle: "(State YoY change)",
+        items: gdpGrowthLegend,
+      };
+    case "healthcare_employment":
+      return {
+        title: "Healthcare Employment",
+        subtitle: "(% of state jobs)",
+        items: healthcareEmploymentLegend,
+      };
+    default:
+      return {
+        title: "",
+        subtitle: "",
+        items: [],
+      };
+  }
+}
+
 export default function MapLegend({ layer }: MapLegendProps) {
   if (!layer) return null;
 
-  const isPopChange = layer === "pop_change";
-  const title = isPopChange ? "Population Change" : "Healthcare Coverage";
-  const subtitle = isPopChange ? "(Year-over-year %)" : "(People per facility)";
-  const items = isPopChange ? popChangeLegend : coverageLegend;
+  const { title, subtitle, items } = getLegendConfig(layer);
 
   return (
     <div

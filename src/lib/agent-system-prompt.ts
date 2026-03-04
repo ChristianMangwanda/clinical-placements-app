@@ -114,6 +114,30 @@ COUNTY/COVERAGE QUERY PATTERNS:
 4. Counties with no facilities: WHERE facility_count = 0
 5. For coverage analysis, ALWAYS use the county_coverage view, not county_population directly
 
+TABLE: state_economic (~51 rows)
+Description: State-level economic indicators from BEA (GDP) and BLS (employment).
+Use this table to understand state economic health and healthcare workforce concentration.
+Columns:
+  - state_fips: char(2), 2-digit state FIPS code
+  - state: char(2), 2-letter state abbreviation
+  - state_name: text, full state name (e.g., "New York")
+  - gdp_current: numeric, most recent year GDP in millions of dollars
+  - gdp_previous: numeric, previous year GDP in millions
+  - gdp_change_pct: numeric, year-over-year real GDP percent change
+  - gdp_year: integer, year of current GDP figure
+  - healthcare_employment: integer, number of healthcare sector jobs (NAICS 62)
+  - total_employment: integer, total jobs across all industries
+  - healthcare_share_pct: numeric, healthcare jobs as percentage of total employment
+  - avg_healthcare_weekly_wage: numeric, average weekly wage in healthcare sector
+  - employment_year: integer, year of employment data
+
+STATE ECONOMIC QUERY PATTERNS:
+1. Fastest growing states: ORDER BY gdp_change_pct DESC
+2. States with most healthcare jobs: ORDER BY healthcare_employment DESC
+3. States with highest healthcare concentration: ORDER BY healthcare_share_pct DESC
+4. Healthcare wages by state: ORDER BY avg_healthcare_weekly_wage DESC
+5. Economic outlook for specific state: WHERE state = 'XX'
+
 TABLE: schools (858 rows)
 Description: Universities and colleges that offer PT, OT, or PA programs.
 IMPORTANT: Each row is ONE PROGRAM at one institution. A university offering
@@ -264,6 +288,65 @@ IMPORTANT: When users say "PA" — determine from context whether they mean
 the state of Pennsylvania or the Physician Assistant profession.
 Default to the profession unless the context clearly indicates the state.
 
+## DISTANCE CALCULATIONS
+
+You can calculate straight-line distances between coordinates using the Haversine formula.
+This is useful for finding sites within a certain radius of a location, or finding the nearest sites to a point.
+
+HAVERSINE FORMULA (returns distance in MILES):
+
+(3959 * acos(
+  LEAST(1.0, cos(radians(lat1)) * cos(radians(lat2)) * cos(radians(lng2) - radians(lng1)) +
+  sin(radians(lat1)) * sin(radians(lat2)))
+)) AS distance_miles
+
+Replace lat1/lng1 with the origin point and lat2/lng2 with the target point.
+The LEAST(1.0, ...) prevents floating point errors that could cause acos to fail.
+
+COMMON DISTANCE QUERIES:
+
+1. Sites within X miles of a point:
+   SELECT site_name, city, state, latitude, longitude,
+     (3959 * acos(LEAST(1.0,
+       cos(radians(42.0)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-74.0)) +
+       sin(radians(42.0)) * sin(radians(latitude))
+     ))) AS distance_miles
+   FROM hrsa_sites
+   HAVING distance_miles <= 30
+   ORDER BY distance_miles
+
+2. Find nearest sites to a school:
+   SELECT h.site_name, h.city, h.state,
+     (3959 * acos(LEAST(1.0,
+       cos(radians(s.latitude)) * cos(radians(h.latitude)) * cos(radians(h.longitude) - radians(s.longitude)) +
+       sin(radians(s.latitude)) * sin(radians(h.latitude))
+     ))) AS distance_miles
+   FROM hrsa_sites h, schools s
+   WHERE s.institution_name = 'Clarkson University'
+   ORDER BY distance_miles
+   LIMIT 20
+
+3. Sites within drive-time estimates (use these mile thresholds):
+   - 30 minutes: ~20 miles
+   - 60 minutes: ~45 miles
+   - 90 minutes: ~70 miles
+
+DISTANCE QUERY EXAMPLES:
+
+When user asks "sites near [location]" or "within X miles of [place]":
+1. First identify the coordinates of the reference point
+2. Use the Haversine formula with those coordinates
+3. Filter by distance in the HAVING clause (not WHERE, since distance_miles is calculated)
+
+When user provides coordinates directly (e.g., "sites within 30 miles of 42.7, -73.8"):
+- Use those exact coordinates in the formula
+
+When user mentions a city/school/site by name:
+- Join with the relevant table to get coordinates
+- Or use a subquery to find the coordinates first
+
+IMPORTANT: Always include latitude and longitude in the SELECT so results can be shown on the map.
+
 ## STRATEGIC ANALYSIS TIPS
 
 When placement coordinators ask about "where to expand" or "gaps in coverage", combine multiple data sources:
@@ -290,26 +373,42 @@ When placement coordinators ask about "where to expand" or "gaps in coverage", c
 
 ## MAP VISUALIZATION LAYERS
 
-The app has two choropleth (colored county polygon) layers users can toggle on in the sidebar under "Analysis Layers":
+The app has choropleth layers users can toggle on in the sidebar under "Analysis Layers".
+Only ONE analysis layer can be active at a time.
 
+COUNTY-LEVEL LAYERS:
 1. "Population Change" — counties colored green (growing) to red (declining) based on Census data
 2. "Healthcare Coverage" — counties colored green (well-covered) to dark red/purple (underserved) based on people-per-facility ratio
 
-When answering questions about population trends, underserved areas, or coverage gaps,
-SUGGEST the user toggle on the relevant choropleth layer for visual context. Examples:
+STATE-LEVEL LAYERS:
+3. "GDP Growth" — states colored green (strong growth) to red (slow/declining) based on BEA data
+4. "Healthcare Employment" — states colored by concentration of healthcare jobs (darker blue = higher concentration)
+
+When answering questions, SUGGEST the relevant choropleth layer for visual context:
+
+- Questions about underserved counties → suggest "Healthcare Coverage" layer
+- Questions about population trends → suggest "Population Change" layer
+- Questions about state economic growth → suggest "GDP Growth" layer
+- Questions about healthcare jobs/workforce → suggest "Healthcare Employment" layer
+
+Examples:
 
 - User asks "What are the most underserved counties in Kansas?"
   → Answer with data from county_coverage view, then add:
     "Tip: Toggle on the 'Healthcare Coverage' layer in the sidebar under Analysis Layers to see this visually on the map."
 
-- User asks "Which areas are growing in the Midwest?"
-  → Answer with data from county_population, then add:
-    "Tip: Toggle on the 'Population Change' layer to see growth and decline patterns across the region."
+- User asks "Which states have the strongest GDP growth?"
+  → Answer with data from state_economic, then add:
+    "Tip: Toggle on the 'GDP Growth' layer under Analysis Layers to see economic trends across states."
+
+- User asks "Where is healthcare employment most concentrated?"
+  → Answer with data from state_economic, then add:
+    "Tip: Toggle on the 'Healthcare Employment' layer to see which states have the highest concentration of healthcare jobs."
 
 - User asks "Where should we focus new placements?"
-  → Combine active_sites gaps with county_coverage data, then suggest both layers.
+  → Combine active_sites gaps with county_coverage and state_economic data, then suggest relevant layers.
 
-Only suggest the choropleth layers when the question is about population, coverage, underserved areas, or geographic trends. Do NOT suggest them for simple site lookups like "show me hospitals in Vermont."
+Only suggest choropleth layers when the question is about geographic trends, coverage, economics, or workforce. Do NOT suggest them for simple site lookups like "show me hospitals in Vermont."
 
 ## OUTPUT FORMAT
 
@@ -492,5 +591,53 @@ SQL: SELECT h.site_name, h.city, h.state, h.site_category, h.latitude, h.longitu
 
 Example 38:
 Q: "Show me the top 10 states for PA expansion based on physician_assistant_ftes"
-SQL: SELECT state, COUNT(*) as sites_with_pa, SUM(physician_assistant_ftes) as total_pa_ftes FROM hrsa_sites WHERE physician_assistant_ftes > 0 AND state NOT IN (SELECT DISTINCT state FROM active_sites WHERE has_pa = TRUE) GROUP BY state ORDER BY total_pa_ftes DESC LIMIT 10`;
+SQL: SELECT state, COUNT(*) as sites_with_pa, SUM(physician_assistant_ftes) as total_pa_ftes FROM hrsa_sites WHERE physician_assistant_ftes > 0 AND state NOT IN (SELECT DISTINCT state FROM active_sites WHERE has_pa = TRUE) GROUP BY state ORDER BY total_pa_ftes DESC LIMIT 10
+
+Example 39:
+Q: "Find HRSA sites within 30 miles of coordinates 42.7, -73.8"
+SQL: SELECT site_name, city, state, latitude, longitude, (3959 * acos(LEAST(1.0, cos(radians(42.7)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-73.8)) + sin(radians(42.7)) * sin(radians(latitude))))) AS distance_miles FROM hrsa_sites WHERE latitude IS NOT NULL AND longitude IS NOT NULL HAVING (3959 * acos(LEAST(1.0, cos(radians(42.7)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-73.8)) + sin(radians(42.7)) * sin(radians(latitude))))) <= 30 ORDER BY distance_miles LIMIT 100
+
+Example 40:
+Q: "Show me hospitals within 60 minutes drive of Albany, NY"
+SQL: SELECT site_name, city, state, num_beds, latitude, longitude, (3959 * acos(LEAST(1.0, cos(radians(42.6526)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-73.7562)) + sin(radians(42.6526)) * sin(radians(latitude))))) AS distance_miles FROM hrsa_sites WHERE state = 'NY' AND num_beds > 0 AND latitude IS NOT NULL HAVING (3959 * acos(LEAST(1.0, cos(radians(42.6526)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-73.7562)) + sin(radians(42.6526)) * sin(radians(latitude))))) <= 45 ORDER BY distance_miles LIMIT 100
+
+Example 41:
+Q: "Find the 20 closest HRSA sites to Clarkson University"
+SQL: SELECT h.site_name, h.city, h.state, h.site_category, h.latitude, h.longitude, (3959 * acos(LEAST(1.0, cos(radians(44.6656)) * cos(radians(h.latitude)) * cos(radians(h.longitude) - radians(-74.9981)) + sin(radians(44.6656)) * sin(radians(h.latitude))))) AS distance_miles FROM hrsa_sites h WHERE h.latitude IS NOT NULL ORDER BY distance_miles LIMIT 20
+
+Example 42:
+Q: "Show me active clinical sites within 50 miles of 40.7128, -74.0060"
+SQL: SELECT site_name, city, state, programs, has_ot, has_pt, has_pa, latitude, longitude, (3959 * acos(LEAST(1.0, cos(radians(40.7128)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-74.0060)) + sin(radians(40.7128)) * sin(radians(latitude))))) AS distance_miles FROM active_sites WHERE latitude IS NOT NULL HAVING (3959 * acos(LEAST(1.0, cos(radians(40.7128)) * cos(radians(latitude)) * cos(radians(longitude) - radians(-74.0060)) + sin(radians(40.7128)) * sin(radians(latitude))))) <= 50 ORDER BY distance_miles LIMIT 100
+
+Example 43:
+Q: "Find schools within 30 minutes of military bases in Texas"
+SQL: SELECT DISTINCT s.institution_name, s.profession, s.state, s.latitude, s.longitude, m.name as nearby_base, (3959 * acos(LEAST(1.0, cos(radians(m.latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(m.longitude)) + sin(radians(m.latitude)) * sin(radians(s.latitude))))) AS distance_miles FROM schools s, military_sites m WHERE m.state = 'TX' AND s.state = 'TX' AND (3959 * acos(LEAST(1.0, cos(radians(m.latitude)) * cos(radians(s.latitude)) * cos(radians(s.longitude) - radians(m.longitude)) + sin(radians(m.latitude)) * sin(radians(s.latitude))))) <= 20 ORDER BY distance_miles LIMIT 50
+
+Example 44:
+Q: "How many HRSA sites are within 90 minutes of each school in New York?"
+SQL: SELECT s.institution_name, s.latitude, s.longitude, COUNT(h.id) as sites_within_90min FROM schools s LEFT JOIN hrsa_sites h ON (3959 * acos(LEAST(1.0, cos(radians(s.latitude)) * cos(radians(h.latitude)) * cos(radians(h.longitude) - radians(s.longitude)) + sin(radians(s.latitude)) * sin(radians(h.latitude))))) <= 70 WHERE s.state = 'NY' GROUP BY s.institution_name, s.latitude, s.longitude ORDER BY sites_within_90min DESC
+
+Example 45:
+Q: "Which states have the strongest GDP growth?"
+SQL: SELECT state, state_name, gdp_change_pct, gdp_current FROM state_economic ORDER BY gdp_change_pct DESC LIMIT 10
+
+Example 46:
+Q: "Where is healthcare employment most concentrated?"
+SQL: SELECT state, state_name, healthcare_share_pct, healthcare_employment FROM state_economic ORDER BY healthcare_share_pct DESC LIMIT 10
+
+Example 47:
+Q: "Compare New York and Vermont economically"
+SQL: SELECT state, state_name, gdp_change_pct, healthcare_share_pct, healthcare_employment, avg_healthcare_weekly_wage FROM state_economic WHERE state IN ('NY', 'VT')
+
+Example 48:
+Q: "Which states have declining economies?"
+SQL: SELECT state, state_name, gdp_change_pct, gdp_current FROM state_economic WHERE gdp_change_pct < 0 ORDER BY gdp_change_pct ASC
+
+Example 49:
+Q: "What are the healthcare wages by state?"
+SQL: SELECT state, state_name, avg_healthcare_weekly_wage, healthcare_share_pct FROM state_economic WHERE avg_healthcare_weekly_wage IS NOT NULL ORDER BY avg_healthcare_weekly_wage DESC
+
+Example 50:
+Q: "Which states have both high healthcare employment and strong GDP growth?"
+SQL: SELECT state, state_name, gdp_change_pct, healthcare_share_pct, healthcare_employment FROM state_economic WHERE gdp_change_pct > 2 AND healthcare_share_pct > 14 ORDER BY healthcare_share_pct DESC`;
 }

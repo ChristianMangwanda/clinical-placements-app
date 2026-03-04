@@ -20,8 +20,11 @@ interface MapWrapperProps {
   flyToLocation?: { lat: number; lng: number } | null;
   highlightPoints?: MapPoint[];
   onClearHighlights?: () => void;
-  activeChoropleth?: "pop_change" | "coverage_ratio" | null;
+  activeChoropleth?: "pop_change" | "coverage_ratio" | "gdp_growth" | "healthcare_employment" | null;
   onChoroplethLoadingChange?: (loading: boolean) => void;
+  // Radius analysis mode
+  radiusMode?: boolean;
+  onRadiusModeChange?: (active: boolean) => void;
 }
 
 export default function MapWrapper(props: MapWrapperProps) {

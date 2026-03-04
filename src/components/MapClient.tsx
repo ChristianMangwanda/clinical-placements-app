@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { X } from "lucide-react";
+import { X, Target } from "lucide-react";
 import type { Layer, LayerVisibility, MapBounds, MapPoint } from "@/lib/types";
 import ChoroplethLayer from "./ChoroplethLayer";
+import StateChoroplethLayer from "./StateChoroplethLayer";
 import MapLegend from "./MapLegend";
+import RadiusOverlay from "./RadiusOverlay";
+import RadiusResults from "./RadiusResults";
+import { bucketSitesByDistance, type RadiusBuckets } from "@/lib/geo-utils";
 
 // Site properties from the API
 interface SiteProperties {
@@ -86,8 +90,11 @@ interface MapProps {
   flyToLocation?: { lat: number; lng: number } | null;
   highlightPoints?: MapPoint[];
   onClearHighlights?: () => void;
-  activeChoropleth?: "pop_change" | "coverage_ratio" | null;
+  activeChoropleth?: "pop_change" | "coverage_ratio" | "gdp_growth" | "healthcare_employment" | null;
   onChoroplethLoadingChange?: (loading: boolean) => void;
+  // Radius analysis mode
+  radiusMode?: boolean;
+  onRadiusModeChange?: (active: boolean) => void;
 }
 
 // Component to handle map events
@@ -191,6 +198,24 @@ function FlyToHighlightBounds({ points }: { points: MapPoint[] }) {
   return null;
 }
 
+// Component to handle radius mode clicks
+function RadiusClickHandler({
+  active,
+  onMapClick,
+}: {
+  active: boolean;
+  onMapClick: (latlng: [number, number]) => void;
+}) {
+  useMapEvents({
+    click: (e) => {
+      if (active) {
+        onMapClick([e.latlng.lat, e.latlng.lng]);
+      }
+    },
+  });
+  return null;
+}
+
 export default function MapClient({
   layers,
   layerVisibility,
@@ -200,6 +225,8 @@ export default function MapClient({
   onClearHighlights,
   activeChoropleth = null,
   onChoroplethLoadingChange,
+  radiusMode = false,
+  onRadiusModeChange,
 }: MapProps) {
   const [sitesData, setSitesData] = useState<Record<string, SiteFeatureCollection>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
@@ -208,10 +235,70 @@ export default function MapClient({
   const iconCache = useRef<Record<string, L.DivIcon>>({});
   const highlightIcon = useRef<L.DivIcon | null>(null);
 
+  // Radius analysis state
+  const [radiusOrigin, setRadiusOrigin] = useState<[number, number] | null>(null);
+
   // Create highlight icon once
   if (!highlightIcon.current) {
     highlightIcon.current = createHighlightIcon();
   }
+
+  // Layer colors map for RadiusResults
+  const layerColors = useMemo(() => {
+    const colors: Record<string, string> = {};
+    layers.forEach((layer) => {
+      colors[layer.layer_key] = layer.color || "#E74C3C";
+    });
+    return colors;
+  }, [layers]);
+
+  // Compute radius buckets when origin is set
+  const radiusBuckets = useMemo<RadiusBuckets | null>(() => {
+    if (!radiusOrigin) return null;
+
+    // Collect all visible sites from sitesData
+    const allSites: Array<{ id: number; name: string; layer_key: string; lat: number; lng: number }> = [];
+
+    Object.entries(sitesData).forEach(([layerKey, collection]) => {
+      if (layerVisibility[layerKey] && collection?.features) {
+        collection.features.forEach((feature) => {
+          const [lng, lat] = feature.geometry.coordinates;
+          allSites.push({
+            id: feature.properties.id,
+            name: feature.properties.name,
+            layer_key: layerKey,
+            lat,
+            lng,
+          });
+        });
+      }
+    });
+
+    return bucketSitesByDistance(allSites, radiusOrigin[0], radiusOrigin[1]);
+  }, [radiusOrigin, sitesData, layerVisibility]);
+
+  // Handle radius click
+  const handleRadiusClick = useCallback((latlng: [number, number]) => {
+    setRadiusOrigin(latlng);
+    // Exit radius mode after placing (optional - keeps active for re-placement)
+    // onRadiusModeChange?.(false);
+  }, []);
+
+  // Clear radius
+  const handleClearRadius = useCallback(() => {
+    setRadiusOrigin(null);
+  }, []);
+
+  // Handle radius origin drag
+  const handleRadiusOriginDrag = useCallback((newOrigin: [number, number]) => {
+    setRadiusOrigin(newOrigin);
+  }, []);
+
+  // Handle site click in results panel (fly to)
+  const handleRadiusSiteClick = useCallback((lat: number, lng: number) => {
+    // This will be handled by FlyToLocation
+    // We'd need to add a ref or use external flyTo
+  }, []);
 
   // Fetch sites for visible layers when bounds change
   const fetchSites = useCallback(
@@ -277,7 +364,7 @@ export default function MapClient({
   const hasHighlights = highlightPoints.length > 0;
 
   return (
-    <div className="h-full w-full relative">
+    <div className={`h-full w-full relative ${radiusMode ? "radius-mode" : ""}`}>
       {/* Loading indicator */}
       {isLoading && (
         <div className="absolute top-4 right-4 z-[1000] bg-[#092E28]/90 text-[#FAC922] px-3 py-1.5 rounded text-sm font-medium">
@@ -296,6 +383,34 @@ export default function MapClient({
         </button>
       )}
 
+      {/* Radius Tool Toggle Button */}
+      <button
+        onClick={() => onRadiusModeChange?.(!radiusMode)}
+        className={`
+          absolute bottom-6 right-6 z-[1000]
+          w-12 h-12 rounded-full
+          flex items-center justify-center
+          shadow-lg transition-all duration-200
+          ${radiusMode
+            ? "bg-gold text-green-deep ring-4 ring-gold/30"
+            : "bg-green-deep/90 text-white/70 hover:text-gold hover:bg-green-deep border border-gold/20"
+          }
+        `}
+        title={radiusMode ? "Cancel radius mode" : "Radius analysis tool"}
+      >
+        <Target className="w-5 h-5" />
+      </button>
+
+      {/* Radius mode instruction */}
+      {radiusMode && !radiusOrigin && (
+        <div className="absolute bottom-20 right-4 z-[1000] bg-green-deep/95 border border-gold/30 rounded-lg px-4 py-2 shadow-lg dropdown-enter">
+          <p className="text-sm text-white/90 flex items-center gap-2">
+            <Target className="w-4 h-4 text-gold" />
+            Click anywhere on the map
+          </p>
+        </div>
+      )}
+
       <MapContainer
         center={[39.8283, -98.5795]}
         zoom={4}
@@ -310,6 +425,12 @@ export default function MapClient({
         <MapEventHandler onBoundsChange={handleBoundsChange} />
         <FlyToLocation location={flyToLocation || null} />
         <FlyToHighlightBounds points={highlightPoints} />
+        <RadiusClickHandler active={radiusMode} onMapClick={handleRadiusClick} />
+
+        {/* Radius overlay when origin is set */}
+        {radiusOrigin && (
+          <RadiusOverlay origin={radiusOrigin} onOriginDrag={handleRadiusOriginDrag} />
+        )}
 
         {/* Render markers for each visible layer */}
         {layers.map((layer) => {
@@ -536,9 +657,18 @@ export default function MapClient({
           </Marker>
         ))}
 
-        {/* Choropleth layer - renders below point markers */}
-        {activeChoropleth && (
+        {/* County-level choropleth layers - pop_change and coverage_ratio */}
+        {activeChoropleth && (activeChoropleth === "pop_change" || activeChoropleth === "coverage_ratio") && (
           <ChoroplethLayer
+            layer={activeChoropleth}
+            visible={true}
+            onLoadingChange={onChoroplethLoadingChange}
+          />
+        )}
+
+        {/* State-level choropleth layers - gdp_growth and healthcare_employment */}
+        {activeChoropleth && (activeChoropleth === "gdp_growth" || activeChoropleth === "healthcare_employment") && (
+          <StateChoroplethLayer
             layer={activeChoropleth}
             visible={true}
             onLoadingChange={onChoroplethLoadingChange}
@@ -548,6 +678,17 @@ export default function MapClient({
 
       {/* Map Legend - outside MapContainer but positioned over map */}
       <MapLegend layer={activeChoropleth} />
+
+      {/* Radius Results Panel */}
+      {radiusOrigin && radiusBuckets && (
+        <RadiusResults
+          origin={radiusOrigin}
+          buckets={radiusBuckets}
+          layerColors={layerColors}
+          onClear={handleClearRadius}
+          onSiteClick={handleRadiusSiteClick}
+        />
+      )}
     </div>
   );
 }
