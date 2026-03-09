@@ -1,165 +1,183 @@
-# Clinical Placements Database
+# Clinical Placements Database — Clarkson University
 
-A Next.js web application built for Clarkson University's clinical placement coordinators to explore, search, and manage clinical placement site data across the United States.
+A web-based platform for managing clinical education site data across Clarkson's PT, OT, and PA programs. Features an interactive map with 90K+ geocoded healthcare facilities, an AI-powered query engine, demographic analysis layers, and economic overlays.
 
-## Overview
+## Live App
 
-This application provides an interactive map interface with over 81,000 clinical placement sites, including HRSA healthcare facilities, educational institutions, military bases, and Native American reserves. The platform enables clinical coordinators to filter by state, healthcare profession (PT/OT/PA), and data layer to identify suitable placement locations for students.
-
-## Features
-
-### Interactive Map
-- Leaflet-based map with marker clustering for efficient visualization of 81,000+ sites
-- Viewport-based data loading for optimal performance
-- Click markers to view detailed site information
-- Hover tooltips for quick identification
-
-### Multi-Layer Data Support
-The application aggregates data from five distinct sources:
-- **HRSA Sites**: 81,000+ healthcare facilities from the Health Resources and Services Administration
-- **Schools**: Physical Therapy, Occupational Therapy, and Physician Assistant programs
-- **Post-Secondary Schools**: Higher education institutions
-- **Military Sites**: Military installations across the US
-- **Native American Reserves**: Tribal reservation locations
-
-### Advanced Filtering
-- Multi-state selection with checkbox interface
-- Profession filter for PT/OT/PA programs
-- Real-time filter application
-
-### Searchable Data Table
-- Tabular view of filtered results
-- Sortable columns (Name, State, Type)
-- Real-time search within results
-- Click-to-navigate integration with map
-
-### AI-Powered Chat Assistant
-- Natural language queries for database exploration
-- Powered by Claude AI (Anthropic)
-- Example queries:
-  - "How many HRSA sites are in California?"
-  - "Which states have no OT programs?"
-  - "List military sites in Texas"
+https://clinical-placements-app.vercel.app
 
 ## Tech Stack
 
 | Category | Technology |
 |----------|------------|
-| Framework | Next.js 15 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS |
-| Map | React Leaflet + Marker Clustering |
-| Database | PostgreSQL (Supabase) |
-| AI | Anthropic Claude API |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript |
+| Map | Leaflet / react-leaflet with marker clustering |
+| Database | PostgreSQL via Supabase |
+| AI Engine | Claude API (text-to-SQL generation) |
+| Hosting | Vercel |
 | Testing | Jest + React Testing Library |
-| Deployment | Vercel |
+| Data Sources | HRSA, US Census Bureau, BEA, BLS QCEW |
 
-## Project Structure
+## Features
+
+### Interactive Map
+- Leaflet-based map with marker clustering for 90K+ sites
+- Viewport-based data loading for optimal performance
+- Click markers to view detailed site information
+- Fly-to navigation from table and AI results
+
+### Multi-Layer Data Support
+| Layer | Records | Source | Description |
+|-------|---------|--------|-------------|
+| HRSA Sites | ~81,683 | HRSA | Healthcare facilities with type, beds, FTEs, rural status |
+| Active Sites | ~830 | Exxat | Clarkson's current clinical placement sites |
+| Schools | ~858 | HRSA | PT/OT/PA programs by institution |
+| Post-Secondary Schools | ~6,812 | Dept of Education | All US colleges |
+| Military Sites | ~824 | DoD | Military bases |
+| Native American Reserves | ~693 | Census | Tribal lands |
+
+### Analysis Layers (Choropleth)
+Toggle these in the sidebar under "Analysis Layers" (only one active at a time):
+
+| Layer | Level | Data Source | Description |
+|-------|-------|-------------|-------------|
+| Population Change | County | US Census | Green = growing, Red = declining |
+| Healthcare Coverage | County | Census + HRSA | People per facility ratio |
+| GDP Growth | State | BEA Regional API | State economic growth |
+| Healthcare Employment | State | BLS QCEW | Healthcare job concentration |
+
+### AI-Powered Chat Assistant
+- Natural language queries powered by Claude
+- SQL generation with 50+ example patterns
+- Map highlighting of query results
+- Automatic choropleth layer recommendations
+
+Example queries:
+- "Show me HRSA sites in California with more than 100 beds"
+- "Which states have no OT programs?"
+- "Find underserved counties in Kansas"
+- "Which states have the strongest GDP growth?"
+
+### Radius Analysis Tool
+Click the compass icon in the top-right, then click anywhere on the map to see:
+- Sites within 30 minutes (20 miles)
+- Sites within 60 minutes (45 miles)
+- Sites within 90 minutes (70 miles)
+
+## Getting Started
+
+### Prerequisites
+- Node.js 20+
+- npm 9+
+- Supabase project (with tables already populated)
+
+### Environment Variables
+
+Create `.env.local`:
+```
+DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+ANTHROPIC_API_KEY=your_claude_api_key
+BEA_API_KEY=your_bea_api_key  # For state economic data refresh
+```
+
+### Install & Run
+```bash
+npm install
+npm run dev
+# Open http://localhost:3000
+```
+
+### Run Tests
+```bash
+npm test
+```
+
+### Deploy
+Push to `main` branch — Vercel auto-deploys.
+
+## Database Tables
+
+| Table | Records | Description |
+|-------|---------|-------------|
+| hrsa_sites | ~81,683 | Healthcare facilities with category, beds, FTEs, rural status |
+| active_sites | ~830 | Clarkson's clinical placement sites |
+| schools | ~858 | PT/OT/PA programs (one row per program) |
+| post_secondary_schools | ~6,812 | All US post-secondary institutions |
+| military_sites | ~824 | Military bases and installations |
+| native_american_reserves | ~693 | Tribal reservation locations |
+| county_population | ~3,144 | County population with YoY change |
+| county_coverage | VIEW | Population / facility ratio by county |
+| state_economic | ~51 | State GDP + healthcare employment |
+| layers | ~9 | Map layer metadata |
+| notes | Variable | User annotations for sites |
+
+## Architecture
 
 ```
 src/
 ├── app/
-│   ├── api/
-│   │   ├── chat/          # AI chatbot endpoint
-│   │   ├── layers/        # Layer metadata endpoint
-│   │   ├── notes/         # Notes CRUD operations
-│   │   ├── search/        # Cross-layer search
-│   │   └── sites/         # GeoJSON site data
-│   ├── dashboard/         # Main application interface
-│   └── page.tsx           # Landing page
+│   ├── api/           # API routes
+│   │   ├── chat/      # AI chatbot endpoint
+│   │   ├── economic/  # State economic data
+│   │   ├── layers/    # Layer metadata
+│   │   ├── notes/     # Notes CRUD
+│   │   ├── population/# County population data
+│   │   ├── schools/   # School filtering
+│   │   ├── search/    # Cross-layer search
+│   │   ├── sites/     # GeoJSON site data
+│   │   └── stats/     # Dashboard statistics
+│   ├── dashboard/     # Main app page
+│   └── error.tsx      # Global error boundary
 ├── components/
-│   ├── ChatPanel.tsx      # AI chat interface
-│   ├── DataTable.tsx      # Searchable results table
-│   ├── FilterPanel.tsx    # State/profession filters
-│   ├── LayerToggle.tsx    # Map layer visibility controls
-│   ├── MapClient.tsx      # Leaflet map component
-│   └── NotesPanel.tsx     # Site annotations
+│   ├── ChatPanel.tsx           # AI chat interface
+│   ├── ChoroplethLayer.tsx     # County-level choropleth
+│   ├── StateChoroplethLayer.tsx# State-level choropleth
+│   ├── DataTable.tsx           # Searchable results table
+│   ├── FilterPanel.tsx         # State/profession filters
+│   ├── LayerToggle.tsx         # Layer visibility controls
+│   ├── MapClient.tsx           # Main map component
+│   ├── MapLegend.tsx           # Choropleth legend
+│   ├── RadiusOverlay.tsx       # Radius circles
+│   └── RadiusResults.tsx       # Radius results panel
 ├── lib/
-│   ├── db.ts              # PostgreSQL connection pool
-│   └── types.ts           # TypeScript interfaces
-└── __tests__/             # Test suite
+│   ├── db.ts                   # PostgreSQL connection
+│   ├── geo-utils.ts            # Haversine distance calculations
+│   ├── query-validator.ts      # SQL validation (security)
+│   ├── agent-system-prompt.ts  # AI agent prompts
+│   └── types.ts                # TypeScript interfaces
+└── __tests__/                  # Test suite
 ```
 
-## Environment Variables
+## Data Refresh
 
-The application requires the following environment variables:
+Data is imported once and refreshed periodically. Scripts are in the project root:
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | Supabase PostgreSQL connection string | Yes |
-| `ANTHROPIC_API_KEY` | Claude API key for AI chat | No |
+| Script | Data Source | Frequency |
+|--------|-------------|-----------|
+| `import_data_supabase.py` | HRSA export + Excel | As needed |
+| `import_active_sites.py` | Exxat export | Semester |
+| `import_state_economic.py` | BEA + BLS APIs | Annually (April) |
 
-**Production**: Configure these in the Vercel dashboard under Project Settings > Environment Variables.
-
-**Local Development**: Copy `.env.example` to `.env.local` and fill in the values.
-
-## Local Development
-
-### Prerequisites
-- Node.js 18 or higher
-- npm, yarn, or pnpm
-
-### Setup
-
+### Refresh Economic Data
 ```bash
-git clone https://github.com/[organization]/clinical-placements-app.git
-cd clinical-placements-app
-npm install
-cp .env.example .env.local
-# Edit .env.local with Supabase credentials
-npm run dev
+export DATABASE_URL="your_connection_string"
+export BEA_API_KEY="your_bea_key"
+python3 import_state_economic.py
 ```
 
-Access the application at `http://localhost:3000`
+## Adding a New User
 
-## Database Setup (Supabase)
+This app doesn't have user authentication (it's an internal tool). Access is controlled at the network level.
 
-### 1. Create a Supabase Project
-1. Go to [supabase.com](https://supabase.com) and create a new project
-2. Wait for the project to be provisioned
+## Common Issues
 
-### 2. Run the Schema Migration
-1. Go to the SQL Editor in your Supabase dashboard
-2. Copy the contents of `supabase_schema.sql` and run it
-3. This creates all tables, indexes, and seeds the layers table
-
-### 3. Import Data
-```bash
-# Install Python dependencies
-pip install psycopg2-binary pandas openpyxl
-
-# Set the database URL
-export DATABASE_URL="postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres"
-
-# Run the import script
-python import_data_supabase.py
-```
-
-### 4. Get Connection String
-1. Go to Settings > Database in your Supabase dashboard
-2. Copy the "Connection string" (URI format)
-3. Add it to your `.env.local` as `DATABASE_URL`
-
-## Database Schema
-
-The application connects to a PostgreSQL database containing the following tables:
-
-| Table | Description | Approximate Records |
-|-------|-------------|---------------------|
-| `layers` | Layer metadata and display configuration | 5 |
-| `hrsa_sites` | HRSA healthcare facilities | 81,000 |
-| `schools` | PT/OT/PA educational programs | 858 |
-| `post_secondary_schools` | Post-secondary institutions | 6,812 |
-| `military_sites` | Military installations | 824 |
-| `native_american_reserves` | Native American reservations | 693 |
-| `notes` | User annotations for sites | Variable |
-
-### Common Table Columns
-- `id` - Primary key (serial)
-- `name` - Site/institution name (varchar)
-- `state` - Two-letter state code (char)
-- `latitude` - Geographic latitude (numeric)
-- `longitude` - Geographic longitude (numeric)
+| Issue | Solution |
+|-------|----------|
+| Map tiles not loading | Check internet connection. Tiles come from OpenStreetMap CDN. |
+| AI gives wrong answers | Check `src/lib/agent-system-prompt.ts`. Add more example queries. |
+| Choropleth not showing | Check browser console. TopoJSON files come from `cdn.jsdelivr.net`. |
+| Missing FIPS codes | Import script zero-pads FIPS. Missing data shows as gray. |
+| HRSA site missing | Re-run `import_data_supabase.py` with updated HRSA export. |
 
 ## Available Scripts
 
@@ -168,70 +186,16 @@ The application connects to a PostgreSQL database containing the following table
 | `npm run dev` | Start development server on port 3000 |
 | `npm run build` | Create production build |
 | `npm run start` | Start production server |
-| `npm run test` | Run test suite |
+| `npm test` | Run test suite |
 | `npm run test:watch` | Run tests in watch mode |
-| `npm run lint` | Run ESLint code analysis |
-
-## Deployment
-
-### Vercel Deployment (Recommended)
-
-1. Push the repository to GitHub
-2. Import the project in [Vercel](https://vercel.com)
-3. Configure the following environment variables in the Vercel dashboard:
-   - `DATABASE_URL` (Supabase connection string)
-   - `ANTHROPIC_API_KEY` (if using AI chat feature)
-4. Deploy
-
-The repository includes `vercel.json` with pre-configured settings including security headers and regional optimization.
-
-### Manual Deployment
-
-```bash
-npm run build
-npm run start
-```
-
-## Application Routes
-
-| Route | Description |
-|-------|-------------|
-| `/` | Landing page with feature overview |
-| `/dashboard` | Main application with map, filters, and data table |
-
-## Usage
-
-### Landing Page
-The landing page (`/`) provides an introduction to the application with feature highlights and navigation to the main dashboard.
-
-### Dashboard
-The dashboard (`/dashboard`) contains the main application interface:
-
-- **Layer Controls** (left sidebar): Toggle data layers on/off using the eye icon
-- **Filters** (left sidebar): Select states and filter by profession (PT/OT/PA)
-- **Map** (center): Interactive map with clustered markers. Click markers to view details.
-- **Data Table** (bottom): Sortable, searchable table of filtered results. Click rows to navigate to locations.
-- **AI Chat** (bottom right): Natural language interface for querying the database
-
-## Testing
-
-The project includes a comprehensive test suite with 39 tests covering:
-- Database utility functions
-- Filter panel interactions
-- Data table functionality
-- Layer toggle behavior
-
-Run tests:
-```bash
-npm test
-```
+| `npm run lint` | Run ESLint |
 
 ## Browser Compatibility
 
-- Google Chrome 90+
-- Mozilla Firefox 88+
-- Apple Safari 14+
-- Microsoft Edge 90+
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
 ## License
 
@@ -239,7 +203,7 @@ Proprietary - Clarkson University. All rights reserved.
 
 ## Support
 
-For technical support or questions, contact the Clarkson University MSDA program.
+For technical support, contact the Clarkson University MSDA program or open an issue in this repository.
 
 ---
 

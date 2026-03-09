@@ -17,7 +17,7 @@ const sourceSans = Source_Sans_3({
 export const metadata: Metadata = {
   title: "Clinical Placements Database | Clarkson University",
   description:
-    "Centralized clinical placements database for PT, OT, and PA programs with map intelligence and AI-powered search.",
+    "Centralized clinical placements database for PT, OT, and PA programs with interactive map, AI-powered search, and demographic analysis.",
   keywords: [
     "clinical placements",
     "physical therapy",
@@ -25,7 +25,21 @@ export const metadata: Metadata = {
     "physician assistant",
     "Clarkson University",
     "clinical education",
+    "healthcare facilities",
+    "HRSA sites",
   ],
+  authors: [{ name: "Clarkson University" }],
+  icons: {
+    icon: "/Clarkson-logo-full.png",
+    apple: "/Clarkson-logo-full.png",
+  },
+  openGraph: {
+    title: "Clinical Placements Database | Clarkson University",
+    description:
+      "Interactive map with 90K+ healthcare facilities, AI-powered queries, and demographic analysis for clinical education coordinators.",
+    type: "website",
+    locale: "en_US",
+  },
 };
 
 export default function RootLayout({
