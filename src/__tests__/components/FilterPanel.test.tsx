@@ -5,8 +5,10 @@ describe("FilterPanel", () => {
   const mockProps = {
     stateFilter: [],
     professionFilter: null,
+    clinicTypeFilter: [],
     onStateChange: jest.fn(),
     onProfessionChange: jest.fn(),
+    onClinicTypeChange: jest.fn(),
     onClearFilters: jest.fn(),
   };
 

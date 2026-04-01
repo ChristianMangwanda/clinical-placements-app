@@ -12,8 +12,10 @@ interface SidebarProps {
   onLayerToggle: (layerKey: string) => void;
   stateFilter: string[];
   professionFilter: Profession | null;
+  clinicTypeFilter: string[];
   onStateChange: (states: string[]) => void;
   onProfessionChange: (profession: Profession | null) => void;
+  onClinicTypeChange: (types: string[]) => void;
   onClearFilters: () => void;
   onSearchSelect: (result: SearchResult) => void;
 }
@@ -24,8 +26,10 @@ export default function Sidebar({
   onLayerToggle,
   stateFilter,
   professionFilter,
+  clinicTypeFilter,
   onStateChange,
   onProfessionChange,
+  onClinicTypeChange,
   onClearFilters,
   onSearchSelect,
 }: SidebarProps) {
@@ -147,8 +151,10 @@ export default function Sidebar({
         <FilterPanel
           stateFilter={stateFilter}
           professionFilter={professionFilter}
+          clinicTypeFilter={clinicTypeFilter}
           onStateChange={onStateChange}
           onProfessionChange={onProfessionChange}
+          onClinicTypeChange={onClinicTypeChange}
           onClearFilters={onClearFilters}
         />
       </div>

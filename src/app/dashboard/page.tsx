@@ -17,6 +17,7 @@ export default function Home() {
   // Filter state
   const [stateFilter, setStateFilter] = useState<string[]>([]);
   const [professionFilter, setProfessionFilter] = useState<Profession | null>(null);
+  const [clinicTypeFilter, setClinicTypeFilter] = useState<string[]>([]);
 
   // Map state
   const [flyToLocation, setFlyToLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -182,6 +183,7 @@ export default function Home() {
   const handleClearFilters = () => {
     setStateFilter([]);
     setProfessionFilter(null);
+    setClinicTypeFilter([]);
   };
 
   const handleSearchSelect = (result: SearchResult) => {
@@ -262,8 +264,10 @@ export default function Home() {
           onLayerToggle={handleLayerToggle}
           stateFilter={stateFilter}
           professionFilter={professionFilter}
+          clinicTypeFilter={clinicTypeFilter}
           onStateChange={setStateFilter}
           onProfessionChange={setProfessionFilter}
+          onClinicTypeChange={setClinicTypeFilter}
           onClearFilters={handleClearFilters}
           onSearchSelect={handleSearchSelect}
         />
@@ -275,6 +279,7 @@ export default function Home() {
               layers={layers}
               layerVisibility={layerVisibility}
               stateFilter={stateFilter}
+              clinicTypeFilter={clinicTypeFilter}
               flyToLocation={flyToLocation}
               highlightPoints={highlightPoints}
               onClearHighlights={handleClearHighlights}

@@ -182,6 +182,22 @@ export interface StateSummary {
   total_count: number;
 }
 
+// HRSA Site Categories for filter dropdown
+export const SITE_CATEGORIES: Record<string, string> = {
+  "Hospital": "Hospital",
+  "Community Health Center": "Community Health Center",
+  "Federally Qualified Health Center": "FQHC",
+  "Rural Health Clinic": "Rural Health Clinic",
+  "Skilled Nursing Facility": "Skilled Nursing",
+  "Ambulatory Surgical Center": "Ambulatory Surgery",
+  "Home Health Agency": "Home Health",
+  "School-Based Health Center": "School-Based",
+  "Migrant Health Center": "Migrant Health",
+  "Homeless Health Center": "Homeless Health",
+  "Indian Health Service": "Indian Health",
+  "Public Housing Primary Care": "Public Housing",
+};
+
 // US States for filter dropdown
 export const US_STATES: Record<string, string> = {
   AL: "Alabama",

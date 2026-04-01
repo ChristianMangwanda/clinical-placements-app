@@ -17,6 +17,7 @@ interface MapWrapperProps {
   layers: Layer[];
   layerVisibility: LayerVisibility;
   stateFilter?: string[];
+  clinicTypeFilter?: string[];
   flyToLocation?: { lat: number; lng: number } | null;
   highlightPoints?: MapPoint[];
   onClearHighlights?: () => void;

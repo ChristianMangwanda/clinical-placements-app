@@ -87,6 +87,7 @@ interface MapProps {
   layers: Layer[];
   layerVisibility: LayerVisibility;
   stateFilter?: string[];
+  clinicTypeFilter?: string[];
   flyToLocation?: { lat: number; lng: number } | null;
   highlightPoints?: MapPoint[];
   onClearHighlights?: () => void;
@@ -220,6 +221,7 @@ export default function MapClient({
   layers,
   layerVisibility,
   stateFilter,
+  clinicTypeFilter,
   flyToLocation,
   highlightPoints = [],
   onClearHighlights,
@@ -313,6 +315,11 @@ export default function MapClient({
           url += `&states=${stateFilter.join(",")}`;
         }
 
+        // Add clinic type filter (only applies to hrsa_sites layer)
+        if (clinicTypeFilter && clinicTypeFilter.length > 0 && layerKey === "hrsa_sites") {
+          url += `&clinicTypes=${clinicTypeFilter.join(",")}`;
+        }
+
         const response = await fetch(url);
         const result = await response.json();
 
@@ -325,7 +332,7 @@ export default function MapClient({
         setLoading((prev) => ({ ...prev, [layerKey]: false }));
       }
     },
-    [stateFilter]
+    [stateFilter, clinicTypeFilter]
   );
 
   // Debounced bounds change handler

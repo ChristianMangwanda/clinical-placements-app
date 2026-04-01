@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const layerKey = searchParams.get("layer");
     const state = searchParams.get("state"); // Single state (legacy)
     const states = searchParams.get("states"); // Multiple states (comma-separated)
+    const clinicTypes = searchParams.get("clinicTypes"); // Clinic types filter (HRSA only)
     const boundsParam = searchParams.get("bounds");
 
     if (!layerKey) {
@@ -83,6 +84,16 @@ export async function GET(request: NextRequest) {
       // Single state (legacy support)
       sql += ` AND state = $${paramIndex++}`;
       params.push(state.toUpperCase());
+    }
+
+    // Clinic type filter (HRSA sites only) - filter by site_category
+    if (clinicTypes && isHrsa) {
+      const typeList = clinicTypes.split(",").map((t) => t.trim()).filter(Boolean);
+      if (typeList.length > 0) {
+        const placeholders = typeList.map(() => `$${paramIndex++}`).join(", ");
+        sql += ` AND site_category IN (${placeholders})`;
+        params.push(...typeList);
+      }
     }
 
     // Bounds filter for viewport-based loading
