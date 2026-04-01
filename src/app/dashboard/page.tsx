@@ -6,6 +6,7 @@ import Sidebar from "@/components/Sidebar";
 import MapWrapper from "@/components/MapWrapper";
 import DataTable from "@/components/DataTable";
 import ChatPanel from "@/components/ChatPanel";
+import { useFavorites } from "@/hooks/useFavorites";
 import type { Layer, LayerVisibility, Profession, SearchResult, MapPoint } from "@/lib/types";
 
 export default function Home() {
@@ -40,6 +41,10 @@ export default function Home() {
   // Data table state
   const [tableData, setTableData] = useState<SearchResult[]>([]);
   const [tableLoading, setTableLoading] = useState(false);
+
+  // Favorites
+  const { favorites, toggleFavorite, isFavorite } = useFavorites();
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
   // Fetch layers on mount
   useEffect(() => {
@@ -194,6 +199,31 @@ export default function Home() {
     setFlyToLocation({ lat: item.latitude, lng: item.longitude });
   };
 
+  const handleToggleFavorite = (item: SearchResult) => {
+    toggleFavorite({
+      id: item.id,
+      layer_key: item.layer_key,
+      name: item.name,
+      state: item.state,
+      latitude: item.latitude,
+      longitude: item.longitude,
+    });
+  };
+
+  // Get display data - either favorites only or regular data
+  const displayData = showFavoritesOnly
+    ? favorites.map((f) => ({
+        id: f.id,
+        layer_key: f.layer_key,
+        name: f.name,
+        state: f.state,
+        latitude: f.latitude,
+        longitude: f.longitude,
+      }))
+    : isAiMode
+    ? aiTableData
+    : tableData;
+
   // Handle AI chat query results - toggle layers and show results
   const handleQueryResult = (result: { mapPoints: MapPoint[]; tableResults: SearchResult[] }) => {
     // Save current layer visibility before hiding
@@ -292,11 +322,16 @@ export default function Home() {
 
           {/* Data Table */}
           <DataTable
-            data={isAiMode ? aiTableData : tableData}
-            loading={isAiMode ? false : tableLoading}
+            data={displayData}
+            loading={isAiMode || showFavoritesOnly ? false : tableLoading}
             onRowClick={handleRowClick}
             layerColors={layerColors}
             isAiResults={isAiMode}
+            isFavorite={isFavorite}
+            onToggleFavorite={handleToggleFavorite}
+            showFavoritesOnly={showFavoritesOnly}
+            onToggleFavoritesView={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            favoritesCount={favorites.length}
           />
         </div>
       </div>

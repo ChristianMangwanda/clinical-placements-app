@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Table, Search, ChevronUp, ChevronDown, MapPin, X } from "lucide-react";
+import { Table, Search, ChevronUp, ChevronDown, MapPin, X, Download, Star, Printer } from "lucide-react";
 import type { SearchResult } from "@/lib/types";
 
 interface DataTableProps {
@@ -10,6 +10,12 @@ interface DataTableProps {
   onRowClick?: (item: SearchResult) => void;
   layerColors: Record<string, string>;
   isAiResults?: boolean;
+  // Favorites
+  isFavorite?: (id: number, layer_key: string) => boolean;
+  onToggleFavorite?: (item: SearchResult) => void;
+  showFavoritesOnly?: boolean;
+  onToggleFavoritesView?: () => void;
+  favoritesCount?: number;
 }
 
 type SortField = "name" | "state" | "layer_key";
@@ -72,11 +78,94 @@ export default function DataTable({
   onRowClick,
   layerColors,
   isAiResults = false,
+  isFavorite,
+  onToggleFavorite,
+  showFavoritesOnly = false,
+  onToggleFavoritesView,
+  favoritesCount = 0,
 }: DataTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Export to CSV
+  const exportToCSV = () => {
+    if (filteredData.length === 0) return;
+
+    const headers = ["Name", "State", "Type", "Latitude", "Longitude"];
+    const rows = filteredData.map((item) => [
+      `"${item.name.replace(/"/g, '""')}"`,
+      item.state,
+      LAYER_DISPLAY_NAMES[item.layer_key] || item.layer_key,
+      item.latitude,
+      item.longitude,
+    ]);
+
+    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `clinical-sites-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Print view
+  const handlePrint = () => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) return;
+
+    const rows = filteredData
+      .slice(0, 500)
+      .map(
+        (item) => `
+        <tr>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.state}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #ddd;">${LAYER_DISPLAY_NAMES[item.layer_key] || item.layer_key}</td>
+        </tr>
+      `
+      )
+      .join("");
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Clinical Placements - Site List</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
+            h1 { color: #00533E; font-size: 24px; margin-bottom: 5px; }
+            .subtitle { color: #666; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th { background: #00533E; color: white; padding: 10px 8px; text-align: left; font-size: 12px; text-transform: uppercase; }
+            tr:nth-child(even) { background: #f9f9f9; }
+            .footer { margin-top: 20px; font-size: 12px; color: #666; }
+            @media print { body { padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <h1>Clinical Placements Database</h1>
+          <p class="subtitle">Clarkson University | ${filteredData.length} sites | Generated ${new Date().toLocaleDateString()}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Site Name</th>
+                <th>State</th>
+                <th>Type</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          ${filteredData.length > 500 ? '<p class="footer">Showing first 500 sites. Export to CSV for full list.</p>' : ""}
+          <script>window.print(); window.onafterprint = () => window.close();</script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  };
 
   // Filter and sort data
   const filteredData = useMemo(() => {
@@ -137,50 +226,109 @@ export default function DataTable({
         <div className="flex items-center gap-2.5">
           <Table className="w-4 h-4 text-gold" />
           <h3 className="font-semibold text-white text-sm">
-            {isAiResults ? (
+            {showFavoritesOnly ? (
+              <span className="text-gold">Watchlist</span>
+            ) : isAiResults ? (
               <span className="text-gold">AI Results</span>
             ) : (
               "Data Table"
             )}
             {!loading && (
-              <span className={`ml-2 font-normal ${isAiResults ? "text-gold/70" : "text-text-muted"}`}>
+              <span className={`ml-2 font-normal ${isAiResults || showFavoritesOnly ? "text-gold/70" : "text-text-muted"}`}>
                 ({filteredData.length} results)
               </span>
             )}
           </h3>
+
+          {/* Favorites toggle */}
+          {onToggleFavoritesView && !isAiResults && (
+            <button
+              onClick={onToggleFavoritesView}
+              className={`
+                flex items-center gap-1.5 px-2.5 py-1
+                text-xs font-medium rounded-full
+                border transition-all duration-150
+                ${showFavoritesOnly
+                  ? "bg-gold/20 border-gold/40 text-gold"
+                  : "bg-green/50 border-white/10 text-text-light hover:border-gold/30 hover:text-gold"
+                }
+              `}
+            >
+              <Star className="w-3 h-3" fill={showFavoritesOnly ? "currentColor" : "none"} />
+              <span>{favoritesCount}</span>
+            </button>
+          )}
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {/* Search input */}
           {!isCollapsed && (
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search..."
-                className="
-                  bg-green/50 border border-white/10 rounded-lg
-                  pl-8 pr-8 py-1.5 text-xs text-white placeholder-text-muted
-                  focus:outline-none focus:border-gold/40 focus:bg-green/60
-                  transition-all duration-150 w-52
-                "
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
+            <>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-muted" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search..."
                   className="
-                    absolute right-2 top-1/2 -translate-y-1/2
-                    p-0.5 rounded text-text-muted
-                    hover:text-white hover:bg-white/10
-                    transition-colors
+                    bg-green/50 border border-white/10 rounded-lg
+                    pl-8 pr-8 py-1.5 text-xs text-white placeholder-text-muted
+                    focus:outline-none focus:border-gold/40 focus:bg-green/60
+                    transition-all duration-150 w-44
                   "
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="
+                      absolute right-2 top-1/2 -translate-y-1/2
+                      p-0.5 rounded text-text-muted
+                      hover:text-white hover:bg-white/10
+                      transition-colors
+                    "
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Export CSV button */}
+              <button
+                onClick={exportToCSV}
+                disabled={filteredData.length === 0}
+                className="
+                  flex items-center gap-1.5 px-2.5 py-1.5
+                  text-xs font-medium text-text-light
+                  bg-green/50 border border-white/10 rounded-lg
+                  hover:bg-green-light/30 hover:text-white hover:border-gold/30
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  transition-all duration-150
+                "
+                title="Export to CSV"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Export</span>
+              </button>
+
+              {/* Print button */}
+              <button
+                onClick={handlePrint}
+                disabled={filteredData.length === 0}
+                className="
+                  flex items-center gap-1.5 px-2.5 py-1.5
+                  text-xs font-medium text-text-light
+                  bg-green/50 border border-white/10 rounded-lg
+                  hover:bg-green-light/30 hover:text-white hover:border-gold/30
+                  disabled:opacity-40 disabled:cursor-not-allowed
+                  transition-all duration-150
+                "
+                title="Print site list"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Print</span>
+              </button>
+            </>
           )}
 
           {/* Collapse toggle */}
@@ -263,7 +411,7 @@ export default function DataTable({
                       <SortIcon field="layer_key" sortField={sortField} sortDirection={sortDirection} />
                     </span>
                   </th>
-                  <th className="w-14 px-4 py-2.5"></th>
+                  <th className="w-24 px-4 py-2.5 text-xs font-semibold uppercase tracking-wider text-text-light/70">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -309,22 +457,47 @@ export default function DataTable({
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onRowClick?.(item);
-                        }}
-                        className="
-                          p-1.5 rounded-lg
-                          text-text-muted
-                          hover:text-gold hover:bg-gold/10
-                          opacity-0 group-hover:opacity-100
-                          transition-all duration-150
-                        "
-                        title="Fly to location"
-                      >
-                        <MapPin className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center gap-1">
+                        {/* Favorite star */}
+                        {onToggleFavorite && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onToggleFavorite(item);
+                            }}
+                            className={`
+                              p-1.5 rounded-lg
+                              transition-all duration-150
+                              ${isFavorite?.(item.id, item.layer_key)
+                                ? "text-gold"
+                                : "text-text-muted opacity-0 group-hover:opacity-100 hover:text-gold"}
+                            `}
+                            title={isFavorite?.(item.id, item.layer_key) ? "Remove from favorites" : "Add to favorites"}
+                          >
+                            <Star
+                              className="w-4 h-4"
+                              fill={isFavorite?.(item.id, item.layer_key) ? "currentColor" : "none"}
+                            />
+                          </button>
+                        )}
+                        {/* Fly to location */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onRowClick?.(item);
+                          }}
+                          className="
+                            p-1.5 rounded-lg
+                            text-text-muted
+                            hover:text-gold hover:bg-gold/10
+                            opacity-0 group-hover:opacity-100
+                            transition-all duration-150
+                          "
+                          title="Fly to location"
+                        >
+                          <MapPin className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
