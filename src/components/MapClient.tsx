@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Popup, Tooltip, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { X, Target } from "lucide-react";
+import { X, Target, Star } from "lucide-react";
 import type { Layer, LayerVisibility, MapBounds, MapPoint } from "@/lib/types";
 import ChoroplethLayer from "./ChoroplethLayer";
 import StateChoroplethLayer from "./StateChoroplethLayer";
@@ -96,6 +96,9 @@ interface MapProps {
   // Radius analysis mode
   radiusMode?: boolean;
   onRadiusModeChange?: (active: boolean) => void;
+  // Favorites
+  isFavorite?: (id: number, layer_key: string) => boolean;
+  onToggleFavorite?: (item: { id: number; layer_key: string; name: string; state: string; latitude: number; longitude: number }) => void;
 }
 
 // Component to handle map events
@@ -229,6 +232,8 @@ export default function MapClient({
   onChoroplethLoadingChange,
   radiusMode = false,
   onRadiusModeChange,
+  isFavorite,
+  onToggleFavorite,
 }: MapProps) {
   const [sitesData, setSitesData] = useState<Record<string, SiteFeatureCollection>>({});
   const [loading, setLoading] = useState<Record<string, boolean>>({});
@@ -624,6 +629,38 @@ export default function MapClient({
                     {/* Default for other layers */}
                     {layer.layer_key !== "hrsa_sites" && layer.layer_key !== "active_sites" && !feature.properties.professions && (
                       <p className="text-sm text-white/70">{feature.properties.state}</p>
+                    )}
+
+                    {/* Add to Watchlist button */}
+                    {onToggleFavorite && (
+                      <div className="flex items-center pt-3 mt-3 border-t border-white/10">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleFavorite({
+                              id: feature.properties.id,
+                              layer_key: layer.layer_key,
+                              name: feature.properties.name,
+                              state: feature.properties.state,
+                              latitude: lat,
+                              longitude: lng,
+                            });
+                          }}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg flex-1 transition-colors ${
+                            isFavorite?.(feature.properties.id, layer.layer_key)
+                              ? "bg-[#FAC922]/20 text-[#FAC922]"
+                              : "bg-white/5 text-white/70 hover:bg-[#FAC922]/10 hover:text-[#FAC922]"
+                          }`}
+                        >
+                          <Star
+                            className="w-4 h-4"
+                            fill={isFavorite?.(feature.properties.id, layer.layer_key) ? "currentColor" : "none"}
+                          />
+                          <span className="text-sm font-medium">
+                            {isFavorite?.(feature.properties.id, layer.layer_key) ? "In Watchlist" : "Add to Watchlist"}
+                          </span>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </Popup>

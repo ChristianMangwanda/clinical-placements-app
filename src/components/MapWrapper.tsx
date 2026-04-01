@@ -26,6 +26,9 @@ interface MapWrapperProps {
   // Radius analysis mode
   radiusMode?: boolean;
   onRadiusModeChange?: (active: boolean) => void;
+  // Favorites
+  isFavorite?: (id: number, layer_key: string) => boolean;
+  onToggleFavorite?: (item: { id: number; layer_key: string; name: string; state: string; latitude: number; longitude: number }) => void;
 }
 
 export default function MapWrapper(props: MapWrapperProps) {

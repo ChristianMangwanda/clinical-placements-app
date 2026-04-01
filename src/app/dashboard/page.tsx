@@ -317,6 +317,8 @@ export default function Home() {
               onChoroplethLoadingChange={setChoroplethLoading}
               radiusMode={radiusMode}
               onRadiusModeChange={setRadiusMode}
+              isFavorite={isFavorite}
+              onToggleFavorite={handleToggleFavorite}
             />
           </div>
 
