@@ -1,0 +1,4 @@
+institution_name,state,profession,graduation_rate,licensure_pass_rate,employment_rate,website_url,phone,email,degree_type,program_length_months,class_size,tuition_resident,tuition_nonresident
+"Clarkson University",NY,PT,94.5,98.2,96.0,https://www.clarkson.edu/pt,315-268-6400,ptprogram@clarkson.edu,DPT,36,40,52000,52000
+"Example University",CA,OT,92.0,95.5,94.0,https://example.edu/ot,555-123-4567,ot@example.edu,MOT,30,35,45000,55000
+"Sample College",TX,PA,88.0,93.0,91.5,https://sample.edu/pa,555-987-6543,pa@sample.edu,MPAS,27,45,38000,48000

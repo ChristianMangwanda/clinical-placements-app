@@ -55,7 +55,10 @@ export async function GET(request: NextRequest) {
     // For HRSA and Active Sites, include extended fields
     let sql: string;
     if (isSchools) {
-      sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude, profession FROM ${escapeId(tableName)} WHERE 1=1`;
+      sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude, profession,
+             graduation_rate, licensure_pass_rate, employment_rate, website_url, phone, email,
+             degree_type, program_length_months, class_size, tuition_resident, tuition_nonresident
+             FROM ${escapeId(tableName)} WHERE 1=1`;
     } else if (isHrsa) {
       sql = `SELECT id, ${escapeId(nameColumn)} as name, state, latitude, longitude,
              site_category, city, physician_ftes, physician_assistant_ftes, num_beds,
@@ -133,6 +136,18 @@ export async function GET(request: NextRequest) {
       has_pt?: boolean;
       has_pa?: boolean;
       source?: string;
+      // School outcome fields
+      graduation_rate?: number;
+      licensure_pass_rate?: number;
+      employment_rate?: number;
+      website_url?: string;
+      phone?: string;
+      email?: string;
+      degree_type?: string;
+      program_length_months?: number;
+      class_size?: number;
+      tuition_resident?: number;
+      tuition_nonresident?: number;
     }
 
     const sites = await query<SiteRow>(sql, params);
@@ -148,6 +163,18 @@ export async function GET(request: NextRequest) {
         latitude: number;
         longitude: number;
         professions: string[];
+        // Outcome fields (take from first record)
+        graduation_rate?: number;
+        licensure_pass_rate?: number;
+        employment_rate?: number;
+        website_url?: string;
+        phone?: string;
+        email?: string;
+        degree_type?: string;
+        program_length_months?: number;
+        class_size?: number;
+        tuition_resident?: number;
+        tuition_nonresident?: number;
       }>();
 
       for (const site of sites) {
@@ -157,6 +184,11 @@ export async function GET(request: NextRequest) {
           if (site.profession && !existing.professions.includes(site.profession)) {
             existing.professions.push(site.profession);
           }
+          // Update outcome fields if not already set
+          if (!existing.graduation_rate && site.graduation_rate) existing.graduation_rate = site.graduation_rate;
+          if (!existing.licensure_pass_rate && site.licensure_pass_rate) existing.licensure_pass_rate = site.licensure_pass_rate;
+          if (!existing.employment_rate && site.employment_rate) existing.employment_rate = site.employment_rate;
+          if (!existing.website_url && site.website_url) existing.website_url = site.website_url;
         } else {
           grouped.set(key, {
             id: site.id,
@@ -165,6 +197,17 @@ export async function GET(request: NextRequest) {
             latitude: site.latitude,
             longitude: site.longitude,
             professions: site.profession ? [site.profession] : [],
+            graduation_rate: site.graduation_rate,
+            licensure_pass_rate: site.licensure_pass_rate,
+            employment_rate: site.employment_rate,
+            website_url: site.website_url,
+            phone: site.phone,
+            email: site.email,
+            degree_type: site.degree_type,
+            program_length_months: site.program_length_months,
+            class_size: site.class_size,
+            tuition_resident: site.tuition_resident,
+            tuition_nonresident: site.tuition_nonresident,
           });
         }
       }
@@ -180,7 +223,18 @@ export async function GET(request: NextRequest) {
           name: school.name,
           layer_key: layerKey,
           state: school.state,
-          professions: school.professions, // Array of all programs
+          professions: school.professions,
+          graduation_rate: school.graduation_rate,
+          licensure_pass_rate: school.licensure_pass_rate,
+          employment_rate: school.employment_rate,
+          website_url: school.website_url,
+          phone: school.phone,
+          email: school.email,
+          degree_type: school.degree_type,
+          program_length_months: school.program_length_months,
+          class_size: school.class_size,
+          tuition_resident: school.tuition_resident,
+          tuition_nonresident: school.tuition_nonresident,
         },
       }));
     } else if (isHrsa) {

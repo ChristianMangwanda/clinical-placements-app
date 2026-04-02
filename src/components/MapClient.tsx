@@ -38,6 +38,18 @@ interface SiteProperties {
   has_pt?: boolean;
   has_pa?: boolean;
   source?: string;
+  // School outcome fields
+  graduation_rate?: number;
+  licensure_pass_rate?: number;
+  employment_rate?: number;
+  website_url?: string;
+  phone?: string;
+  email?: string;
+  degree_type?: string;
+  program_length_months?: number;
+  class_size?: number;
+  tuition_resident?: number;
+  tuition_nonresident?: number;
 }
 
 interface SiteFeature {
@@ -492,20 +504,75 @@ export default function MapClient({
                     {/* Divider */}
                     <div className="h-px bg-gradient-to-r from-transparent via-[#FAC922]/30 to-transparent mb-3" />
 
-                    {/* Schools - show programs */}
+                    {/* Schools - show programs and outcomes */}
                     {feature.properties.professions && feature.properties.professions.length > 0 && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <span className="text-sm text-white/60">Programs:</span>
-                        <div className="flex gap-1.5">
-                          {feature.properties.professions.map((p: string) => (
-                            <span
-                              key={p}
-                              className="px-2 py-0.5 bg-[#FAC922]/20 text-[#FAC922] text-xs font-semibold rounded"
-                            >
-                              {p}
-                            </span>
-                          ))}
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-white/60">Programs:</span>
+                          <div className="flex gap-1.5">
+                            {feature.properties.professions.map((p: string) => (
+                              <span
+                                key={p}
+                                className="px-2 py-0.5 bg-[#FAC922]/20 text-[#FAC922] text-xs font-semibold rounded"
+                              >
+                                {p}
+                              </span>
+                            ))}
+                          </div>
                         </div>
+
+                        {/* Degree type and program length */}
+                        {(feature.properties.degree_type || feature.properties.program_length_months) && (
+                          <div className="flex gap-4 text-sm">
+                            {feature.properties.degree_type && (
+                              <span className="text-white/80">
+                                <span className="text-white/50">Degree:</span> {feature.properties.degree_type}
+                              </span>
+                            )}
+                            {feature.properties.program_length_months && (
+                              <span className="text-white/80">
+                                <span className="text-white/50">Length:</span> {feature.properties.program_length_months} months
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Outcome metrics */}
+                        {(feature.properties.graduation_rate || feature.properties.licensure_pass_rate || feature.properties.employment_rate) && (
+                          <div className="flex gap-3 pt-2 mt-2 border-t border-white/10">
+                            {feature.properties.graduation_rate && (
+                              <div className="text-center">
+                                <div className="text-[#FAC922] font-semibold">{feature.properties.graduation_rate}%</div>
+                                <div className="text-white/40 text-xs">Grad Rate</div>
+                              </div>
+                            )}
+                            {feature.properties.licensure_pass_rate && (
+                              <div className="text-center">
+                                <div className="text-emerald-400 font-semibold">{feature.properties.licensure_pass_rate}%</div>
+                                <div className="text-white/40 text-xs">Pass Rate</div>
+                              </div>
+                            )}
+                            {feature.properties.employment_rate && (
+                              <div className="text-center">
+                                <div className="text-blue-400 font-semibold">{feature.properties.employment_rate}%</div>
+                                <div className="text-white/40 text-xs">Employed</div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Contact info */}
+                        {feature.properties.website_url && (
+                          <a
+                            href={feature.properties.website_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1.5 text-sm text-[#FAC922] hover:underline mt-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            Visit Program Website →
+                          </a>
+                        )}
                       </div>
                     )}
 
