@@ -338,6 +338,11 @@ export default function Home() {
             showFavoritesOnly={showFavoritesOnly}
             onToggleFavoritesView={() => setShowFavoritesOnly(!showFavoritesOnly)}
             favoritesCount={favorites.length}
+            activeFilters={{
+              states: stateFilter,
+              clinicTypes: clinicTypeFilter,
+              profession: professionFilter,
+            }}
           />
         </div>
       </div>

@@ -16,6 +16,12 @@ interface DataTableProps {
   showFavoritesOnly?: boolean;
   onToggleFavoritesView?: () => void;
   favoritesCount?: number;
+  // Filter context for exports
+  activeFilters?: {
+    states?: string[];
+    clinicTypes?: string[];
+    profession?: string | null;
+  };
 }
 
 type SortField = "name" | "state" | "layer_key";
@@ -83,15 +89,44 @@ export default function DataTable({
   showFavoritesOnly = false,
   onToggleFavoritesView,
   favoritesCount = 0,
+  activeFilters,
 }: DataTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  // Build filter summary for exports
+  const getFilterSummary = () => {
+    const filters: string[] = [];
+    if (activeFilters?.states && activeFilters.states.length > 0) {
+      filters.push(`States: ${activeFilters.states.join(", ")}`);
+    }
+    if (activeFilters?.clinicTypes && activeFilters.clinicTypes.length > 0) {
+      filters.push(`Clinic Types: ${activeFilters.clinicTypes.join(", ")}`);
+    }
+    if (activeFilters?.profession) {
+      filters.push(`Profession: ${activeFilters.profession}`);
+    }
+    if (showFavoritesOnly) {
+      filters.push("View: Watchlist Only");
+    }
+    return filters.length > 0 ? filters : ["No filters applied"];
+  };
+
   // Export to CSV
   const exportToCSV = () => {
     if (filteredData.length === 0) return;
+
+    const filterSummary = getFilterSummary();
+    const metadata = [
+      `"Clinical Placements Database Export"`,
+      `"Generated: ${new Date().toLocaleString()}"`,
+      `"Total Sites: ${filteredData.length}"`,
+      `"Filters Applied:"`,
+      ...filterSummary.map((f) => `"  - ${f}"`),
+      `""`, // Empty row before data
+    ];
 
     const headers = ["Name", "State", "Type", "Latitude", "Longitude"];
     const rows = filteredData.map((item) => [
@@ -102,7 +137,7 @@ export default function DataTable({
       item.longitude,
     ]);
 
-    const csv = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+    const csv = [...metadata, headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -116,6 +151,9 @@ export default function DataTable({
   const handlePrint = () => {
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
+
+    const filterSummary = getFilterSummary();
+    const filtersHtml = filterSummary.map((f) => `<span class="filter-tag">${f}</span>`).join("");
 
     const rows = filteredData
       .slice(0, 500)
@@ -138,7 +176,10 @@ export default function DataTable({
           <style>
             body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; }
             h1 { color: #00533E; font-size: 24px; margin-bottom: 5px; }
-            .subtitle { color: #666; margin-bottom: 20px; }
+            .subtitle { color: #666; margin-bottom: 8px; }
+            .filters { margin-bottom: 16px; }
+            .filters-label { font-size: 12px; color: #666; margin-right: 8px; }
+            .filter-tag { display: inline-block; background: #e8f5e9; color: #00533E; padding: 4px 10px; border-radius: 4px; font-size: 11px; margin-right: 6px; margin-bottom: 4px; }
             table { width: 100%; border-collapse: collapse; }
             th { background: #00533E; color: white; padding: 10px 8px; text-align: left; font-size: 12px; text-transform: uppercase; }
             tr:nth-child(even) { background: #f9f9f9; }
@@ -149,6 +190,9 @@ export default function DataTable({
         <body>
           <h1>Clinical Placements Database</h1>
           <p class="subtitle">Clarkson University | ${filteredData.length} sites | Generated ${new Date().toLocaleDateString()}</p>
+          <div class="filters">
+            <span class="filters-label">Filters:</span>${filtersHtml}
+          </div>
           <table>
             <thead>
               <tr>
