@@ -113,7 +113,11 @@ export default function Home() {
 
         // Fetch from each visible layer in parallel
         const fetchPromises = visibleLayers.map(async (layerKey) => {
-          const url = `/api/sites?layer=${layerKey}&states=${stateFilter.join(",")}`;
+          let url = `/api/sites?layer=${layerKey}&states=${stateFilter.join(",")}`;
+          // Add clinic type filter for HRSA sites
+          if (clinicTypeFilter.length > 0 && layerKey === "hrsa_sites") {
+            url += `&clinicTypes=${clinicTypeFilter.join(",")}`;
+          }
           const response = await fetch(url);
           const result = await response.json();
 
@@ -151,7 +155,7 @@ export default function Home() {
     } finally {
       setTableLoading(false);
     }
-  }, [layerVisibility, stateFilter]);
+  }, [layerVisibility, stateFilter, clinicTypeFilter]);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
