@@ -1,0 +1,50 @@
+name: Supabase Keepalive
+
+# Prevents the Supabase free-tier project from pausing after 7 days of
+# inactivity. Direct Postgres connections (what the app uses) do not count
+# as activity — only requests through the Supabase API gateway do — so this
+# pings the REST API. Runs are visible in the Actions tab and GitHub emails
+# on failure, unlike the old silent Vercel cron.
+
+on:
+  schedule:
+    # Mondays and Thursdays at 08:23 UTC (max gap 4 days, well inside the 7-day window)
+    - cron: "23 8 * * 1,4"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          status=$(curl -sS -o /tmp/body -w "%{http_code}" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/layers?select=id&limit=1")
+          echo "Supabase responded with HTTP $status"
+          if [ "$status" -lt 200 ] || [ "$status" -ge 300 ]; then
+            echo "Keepalive ping failed:"
+            cat /tmp/body
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # GitHub disables scheduled workflows in repos with no commits for 60
+      # days. Push an empty commit when we get close so the schedule survives.
+      - name: Keep scheduled workflow enabled
+        run: |
+          last_commit=$(git log -1 --format=%ct)
+          days=$(( ( $(date +%s) - last_commit ) / 86400 ))
+          echo "Last commit was $days days ago"
+          if [ "$days" -ge 50 ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit --allow-empty -m "chore: keepalive commit so the scheduled workflow is not suspended"
+            git push
+          fi

@@ -2,12 +2,6 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "crons": [
-    {
-      "path": "/api/cron/ping",
-      "schedule": "0 12 * * 1,4"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
