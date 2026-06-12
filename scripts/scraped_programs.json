@@ -1,0 +1,1290 @@
+[
+  {
+    "institution": "AL",
+    "state": "Faulkner University"
+  },
+  {
+    "institution": "AL",
+    "state": "Samford University"
+  },
+  {
+    "institution": "AL",
+    "state": "University of Alabama at Birmingham"
+  },
+  {
+    "institution": "AL",
+    "state": "University of South Alabama"
+  },
+  {
+    "institution": "AR",
+    "state": "Harding University"
+  },
+  {
+    "institution": "AR",
+    "state": "University of Arkansas"
+  },
+  {
+    "institution": "AZ",
+    "state": "Arizona School of Health Sciences"
+  },
+  {
+    "institution": "AZ",
+    "state": "Creighton University - Phoenix"
+  },
+  {
+    "institution": "AZ",
+    "state": "Franklin Pierce University (Goodyear)"
+  },
+  {
+    "institution": "AZ",
+    "state": "Midwestern University (Glendale)"
+  },
+  {
+    "institution": "AZ",
+    "state": "Northern Arizona University"
+  },
+  {
+    "institution": "CA",
+    "state": "A.T. Still University of Health Sciences (Central Coast)"
+  },
+  {
+    "institution": "CA",
+    "state": "California Baptist University"
+  },
+  {
+    "institution": "CA",
+    "state": "Chapman University"
+  },
+  {
+    "institution": "CA",
+    "state": "Charles R. Drew University of Medicine and Science"
+  },
+  {
+    "institution": "CA",
+    "state": "Dominican University of California"
+  },
+  {
+    "institution": "CA",
+    "state": "Keck Graduate Institute"
+  },
+  {
+    "institution": "CA",
+    "state": "Loma Linda University"
+  },
+  {
+    "institution": "CA",
+    "state": "Marshall B. Ketchum University"
+  },
+  {
+    "institution": "CA",
+    "state": "Point Loma Nazarene University"
+  },
+  {
+    "institution": "CA",
+    "state": "Samuel Merritt University"
+  },
+  {
+    "institution": "CA",
+    "state": "Southern California University of Health Sciences"
+  },
+  {
+    "institution": "CA",
+    "state": "Stanford University"
+  },
+  {
+    "institution": "CA",
+    "state": "Touro University California Joint MSPAS/MPH Program"
+  },
+  {
+    "institution": "CA",
+    "state": "Touro University California - Los Angeles"
+  },
+  {
+    "institution": "CA",
+    "state": "University of California-Davis"
+  },
+  {
+    "institution": "CA",
+    "state": "University of California-San Diego"
+  },
+  {
+    "institution": "CA",
+    "state": "University of Southern California (LA)"
+  },
+  {
+    "institution": "CA",
+    "state": "University of the Pacific"
+  },
+  {
+    "institution": "CA",
+    "state": "West Coast University -  California"
+  },
+  {
+    "institution": "CA",
+    "state": "Western University of Health Sciences"
+  },
+  {
+    "institution": "CO",
+    "state": "Colorado Mesa University"
+  },
+  {
+    "institution": "CO",
+    "state": "Red Rocks Community College"
+  },
+  {
+    "institution": "CO",
+    "state": "Rocky Vista University"
+  },
+  {
+    "institution": "CO",
+    "state": "University of Colorado"
+  },
+  {
+    "institution": "CT",
+    "state": "Quinnipiac University"
+  },
+  {
+    "institution": "CT",
+    "state": "Sacred Heart University"
+  },
+  {
+    "institution": "CT",
+    "state": "University of Bridgeport"
+  },
+  {
+    "institution": "CT",
+    "state": "University of Saint Joseph"
+  },
+  {
+    "institution": "CT",
+    "state": "Yale University Physician Associate Program"
+  },
+  {
+    "institution": "CT",
+    "state": "Yale University Physician Assistant Online Program"
+  },
+  {
+    "institution": "DC",
+    "state": "George Washington University"
+  },
+  {
+    "institution": "DC",
+    "state": "Howard University"
+  },
+  {
+    "institution": "FL",
+    "state": "AdventHealth University"
+  },
+  {
+    "institution": "FL",
+    "state": "Barry University"
+  },
+  {
+    "institution": "FL",
+    "state": "Florida Gulf Coast University"
+  },
+  {
+    "institution": "FL",
+    "state": "Florida International University Herbert Wertheim College of Medicine"
+  },
+  {
+    "institution": "FL",
+    "state": "Florida State University"
+  },
+  {
+    "institution": "FL",
+    "state": "Gannon University-Ruskin"
+  },
+  {
+    "institution": "FL",
+    "state": "Larkin University"
+  },
+  {
+    "institution": "FL",
+    "state": "Lincoln Memorial University \u2013 Tampa"
+  },
+  {
+    "institution": "FL",
+    "state": "Miami-Dade College"
+  },
+  {
+    "institution": "FL",
+    "state": "Nova Southeastern University, Fort Lauderdale"
+  },
+  {
+    "institution": "FL",
+    "state": "Nova Southeastern University, Fort Myers"
+  },
+  {
+    "institution": "FL",
+    "state": "Nova Southeastern University, Jacksonville"
+  },
+  {
+    "institution": "FL",
+    "state": "Nova Southeastern University, Orlando"
+  },
+  {
+    "institution": "FL",
+    "state": "Palm Beach Atlantic University"
+  },
+  {
+    "institution": "FL",
+    "state": "South College \u2013 Orlando"
+  },
+  {
+    "institution": "FL",
+    "state": "South University, Tampa"
+  },
+  {
+    "institution": "FL",
+    "state": "South University, West Palm Beach"
+  },
+  {
+    "institution": "FL",
+    "state": "University of Florida"
+  },
+  {
+    "institution": "FL",
+    "state": "University of South Florida"
+  },
+  {
+    "institution": "FL",
+    "state": "University of Tampa"
+  },
+  {
+    "institution": "GA",
+    "state": "Augusta University"
+  },
+  {
+    "institution": "GA",
+    "state": "Berry College"
+  },
+  {
+    "institution": "GA",
+    "state": "Brenau University"
+  },
+  {
+    "institution": "GA",
+    "state": "Emory University"
+  },
+  {
+    "institution": "GA",
+    "state": "Mercer University"
+  },
+  {
+    "institution": "GA",
+    "state": "Morehouse School of Medicine"
+  },
+  {
+    "institution": "GA",
+    "state": "South University in Savannah"
+  },
+  {
+    "institution": "HI",
+    "state": "Hawai\u02bbi Pacific University"
+  },
+  {
+    "institution": "IA",
+    "state": "Des Moines University"
+  },
+  {
+    "institution": "IA",
+    "state": "Northwestern College"
+  },
+  {
+    "institution": "IA",
+    "state": "St. Ambrose University"
+  },
+  {
+    "institution": "IA",
+    "state": "University of Dubuque"
+  },
+  {
+    "institution": "IA",
+    "state": "University of Iowa"
+  },
+  {
+    "institution": "ID",
+    "state": "Idaho State University"
+  },
+  {
+    "institution": "IL",
+    "state": "Chamberlain University - Chicago"
+  },
+  {
+    "institution": "IL",
+    "state": "Dominican University"
+  },
+  {
+    "institution": "IL",
+    "state": "Midwestern University (Downers Grove)"
+  },
+  {
+    "institution": "IL",
+    "state": "North Central College"
+  },
+  {
+    "institution": "IL",
+    "state": "Northwestern University"
+  },
+  {
+    "institution": "IL",
+    "state": "Rosalind Franklin Univ of Medicine (formerly Finch)"
+  },
+  {
+    "institution": "IL",
+    "state": "Rush University"
+  },
+  {
+    "institution": "IL",
+    "state": "Southern Illinois University"
+  },
+  {
+    "institution": "IL",
+    "state": "Touro University Illinois"
+  },
+  {
+    "institution": "IN",
+    "state": "Butler University"
+  },
+  {
+    "institution": "IN",
+    "state": "Franklin College"
+  },
+  {
+    "institution": "IN",
+    "state": "Indiana State University"
+  },
+  {
+    "institution": "IN",
+    "state": "Indiana University"
+  },
+  {
+    "institution": "IN",
+    "state": "Taylor University"
+  },
+  {
+    "institution": "IN",
+    "state": "Trine University"
+  },
+  {
+    "institution": "IN",
+    "state": "University of Evansville"
+  },
+  {
+    "institution": "IN",
+    "state": "University of Saint Francis (Fort Wayne)"
+  },
+  {
+    "institution": "IN",
+    "state": "Valparaiso University"
+  },
+  {
+    "institution": "KS",
+    "state": "Kansas State University"
+  },
+  {
+    "institution": "KS",
+    "state": "Ottawa University"
+  },
+  {
+    "institution": "KS",
+    "state": "Wichita State University"
+  },
+  {
+    "institution": "KY",
+    "state": "Sullivan University"
+  },
+  {
+    "institution": "KY",
+    "state": "University of Kentucky"
+  },
+  {
+    "institution": "KY",
+    "state": "University of the Cumberlands"
+  },
+  {
+    "institution": "KY",
+    "state": "University of the Cumberlands, Northern Kentucky Campus"
+  },
+  {
+    "institution": "LA",
+    "state": "Franciscan Missionaries of Our Lady University(Our Lady of the Lake College)"
+  },
+  {
+    "institution": "LA",
+    "state": "Louisiana State University \u2013 New Orleans"
+  },
+  {
+    "institution": "LA",
+    "state": "Louisiana State University Health Sciences Center Shreveport"
+  },
+  {
+    "institution": "LA",
+    "state": "Xavier University of Louisiana"
+  },
+  {
+    "institution": "MA",
+    "state": "Assumption University"
+  },
+  {
+    "institution": "MA",
+    "state": "Bay Path University"
+  },
+  {
+    "institution": "MA",
+    "state": "Boston University Chobanian & Avedisian School of Medicine PA Program"
+  },
+  {
+    "institution": "MA",
+    "state": "MCPHS University (Boston)"
+  },
+  {
+    "institution": "MA",
+    "state": "MGH Institute of Health Professions"
+  },
+  {
+    "institution": "MA",
+    "state": "Northeastern University"
+  },
+  {
+    "institution": "MA",
+    "state": "Springfield College"
+  },
+  {
+    "institution": "MA",
+    "state": "Tufts University"
+  },
+  {
+    "institution": "MA",
+    "state": "Westfield State University"
+  },
+  {
+    "institution": "MD",
+    "state": "Frostburg State University"
+  },
+  {
+    "institution": "MD",
+    "state": "Mount St. Mary's University"
+  },
+  {
+    "institution": "MD",
+    "state": "Notre Dame of Maryland University"
+  },
+  {
+    "institution": "MD",
+    "state": "Towson University"
+  },
+  {
+    "institution": "MD",
+    "state": "University of Maryland Baltimore"
+  },
+  {
+    "institution": "MD",
+    "state": "University of Maryland Eastern Shore"
+  },
+  {
+    "institution": "ME",
+    "state": "University of New England"
+  },
+  {
+    "institution": "MI",
+    "state": "Central Michigan University"
+  },
+  {
+    "institution": "MI",
+    "state": "Concordia University-Ann Arbor"
+  },
+  {
+    "institution": "MI",
+    "state": "Eastern Michigan University"
+  },
+  {
+    "institution": "MI",
+    "state": "Grand Valley State University"
+  },
+  {
+    "institution": "MI",
+    "state": "Lawrence Technological University"
+  },
+  {
+    "institution": "MI",
+    "state": "Michigan State University"
+  },
+  {
+    "institution": "MI",
+    "state": "Oakland University"
+  },
+  {
+    "institution": "MI",
+    "state": "University of Detroit Mercy"
+  },
+  {
+    "institution": "MI",
+    "state": "University of Michigan-Flint"
+  },
+  {
+    "institution": "MI",
+    "state": "Wayne State University"
+  },
+  {
+    "institution": "MI",
+    "state": "Western Michigan University"
+  },
+  {
+    "institution": "MN",
+    "state": "Augsburg University"
+  },
+  {
+    "institution": "MN",
+    "state": "Bethel University"
+  },
+  {
+    "institution": "MN",
+    "state": "College of St. Scholastica"
+  },
+  {
+    "institution": "MN",
+    "state": "Mayo Clinic School of Health Sciences"
+  },
+  {
+    "institution": "MN",
+    "state": "Saint Catherine University"
+  },
+  {
+    "institution": "MO",
+    "state": "Drury University"
+  },
+  {
+    "institution": "MO",
+    "state": "Missouri State University (formerly SWMS)"
+  },
+  {
+    "institution": "MO",
+    "state": "Saint Louis University"
+  },
+  {
+    "institution": "MO",
+    "state": "Stephens College"
+  },
+  {
+    "institution": "MO",
+    "state": "University of Missouri \u2013 Kansas City"
+  },
+  {
+    "institution": "MS",
+    "state": "Mississippi College"
+  },
+  {
+    "institution": "MS",
+    "state": "Mississippi State University-Meridian"
+  },
+  {
+    "institution": "MT",
+    "state": "Rocky Mountain College"
+  },
+  {
+    "institution": "NC",
+    "state": "Campbell University"
+  },
+  {
+    "institution": "NC",
+    "state": "Duke University Medical Center"
+  },
+  {
+    "institution": "NC",
+    "state": "East Carolina University"
+  },
+  {
+    "institution": "NC",
+    "state": "Elon University"
+  },
+  {
+    "institution": "NC",
+    "state": "Gardner Webb University"
+  },
+  {
+    "institution": "NC",
+    "state": "High Point University"
+  },
+  {
+    "institution": "NC",
+    "state": "Lenoir-Rhyne University"
+  },
+  {
+    "institution": "NC",
+    "state": "Methodist University"
+  },
+  {
+    "institution": "NC",
+    "state": "North Carolina A&T State University"
+  },
+  {
+    "institution": "NC",
+    "state": "Pfeiffer University"
+  },
+  {
+    "institution": "NC",
+    "state": "South College \u2013 Asheville"
+  },
+  {
+    "institution": "NC",
+    "state": "University of North Carolina \u2013 Chapel Hill"
+  },
+  {
+    "institution": "NC",
+    "state": "Wake Forest University (Bowman Gray)"
+  },
+  {
+    "institution": "NC",
+    "state": "Wingate University"
+  },
+  {
+    "institution": "ND",
+    "state": "University of North Dakota"
+  },
+  {
+    "institution": "NE",
+    "state": "College of Saint Mary"
+  },
+  {
+    "institution": "NE",
+    "state": "Creighton University"
+  },
+  {
+    "institution": "NE",
+    "state": "Union Adventist University"
+  },
+  {
+    "institution": "NE",
+    "state": "University of Nebraska Medical Center"
+  },
+  {
+    "institution": "NH",
+    "state": "Franklin Pierce University"
+  },
+  {
+    "institution": "NH",
+    "state": "MCPHS University (Manchester/Worcester)"
+  },
+  {
+    "institution": "NJ",
+    "state": "Fairleigh Dickinson University"
+  },
+  {
+    "institution": "NJ",
+    "state": "Kean University"
+  },
+  {
+    "institution": "NJ",
+    "state": "Monmouth University"
+  },
+  {
+    "institution": "NJ",
+    "state": "Rutgers University"
+  },
+  {
+    "institution": "NJ",
+    "state": "Saint Elizabeth University"
+  },
+  {
+    "institution": "NJ",
+    "state": "Seton Hall University"
+  },
+  {
+    "institution": "NM",
+    "state": "University of New Mexico"
+  },
+  {
+    "institution": "NV",
+    "state": "Touro University Nevada"
+  },
+  {
+    "institution": "NV",
+    "state": "University of Nevada, Reno"
+  },
+  {
+    "institution": "NY",
+    "state": "Albany Medical College"
+  },
+  {
+    "institution": "NY",
+    "state": "Canisius University"
+  },
+  {
+    "institution": "NY",
+    "state": "Clarkson University"
+  },
+  {
+    "institution": "NY",
+    "state": "University of Mount Saint Vincent"
+  },
+  {
+    "institution": "NY",
+    "state": "CUNY School of Medicine (formerly CCNY Sophie Davis School of Biomedical Education)"
+  },
+  {
+    "institution": "NY",
+    "state": "York College, CUNY"
+  },
+  {
+    "institution": "NY",
+    "state": "Daemen University"
+  },
+  {
+    "institution": "NY",
+    "state": "D\u2019youville University"
+  },
+  {
+    "institution": "NY",
+    "state": "Hofstra University"
+  },
+  {
+    "institution": "NY",
+    "state": "Ithaca College"
+  },
+  {
+    "institution": "NY",
+    "state": "Le Moyne College"
+  },
+  {
+    "institution": "NY",
+    "state": "Long Island University"
+  },
+  {
+    "institution": "NY",
+    "state": "Marist University"
+  },
+  {
+    "institution": "NY",
+    "state": "Mercy University"
+  },
+  {
+    "institution": "NY",
+    "state": "Nazareth University"
+  },
+  {
+    "institution": "NY",
+    "state": "New York Institute of Technology"
+  },
+  {
+    "institution": "NY",
+    "state": "Pace University-Lenox Hill Hospital, NYC"
+  },
+  {
+    "institution": "NY",
+    "state": "Pace University- Pleasantville"
+  },
+  {
+    "institution": "NY",
+    "state": "Rochester Institute of Technology"
+  },
+  {
+    "institution": "NY",
+    "state": "St. Bonaventure University"
+  },
+  {
+    "institution": "NY",
+    "state": "St. John\u2019s University (formerly SVCMC)"
+  },
+  {
+    "institution": "NY",
+    "state": "Stony Brook University"
+  },
+  {
+    "institution": "NY",
+    "state": "SUNY Downstate Medical Center"
+  },
+  {
+    "institution": "NY",
+    "state": "SUNY Upstate Medical Center"
+  },
+  {
+    "institution": "NY",
+    "state": "Touro University (Long Island)"
+  },
+  {
+    "institution": "NY",
+    "state": "Touro University (Manhattan)"
+  },
+  {
+    "institution": "NY",
+    "state": "Touro University (Middletown)"
+  },
+  {
+    "institution": "NY",
+    "state": "Weill Cornell Medicine Master of Science in Health Sciences for Physician Assistants Program"
+  },
+  {
+    "institution": "NY",
+    "state": "Wagner College"
+  },
+  {
+    "institution": "NY",
+    "state": "Yeshiva University"
+  },
+  {
+    "institution": "OH",
+    "state": "Ashland University"
+  },
+  {
+    "institution": "OH",
+    "state": "Baldwin Wallace University"
+  },
+  {
+    "institution": "OH",
+    "state": "Case Western Reserve University"
+  },
+  {
+    "institution": "OH",
+    "state": "Cedarville University"
+  },
+  {
+    "institution": "OH",
+    "state": "Kettering College"
+  },
+  {
+    "institution": "OH",
+    "state": "Lake Erie College"
+  },
+  {
+    "institution": "OH",
+    "state": "Marietta College"
+  },
+  {
+    "institution": "OH",
+    "state": "Mercy College of Ohio"
+  },
+  {
+    "institution": "OH",
+    "state": "Miami University"
+  },
+  {
+    "institution": "OH",
+    "state": "Mount St. Joseph University"
+  },
+  {
+    "institution": "OH",
+    "state": "Ohio Dominican University"
+  },
+  {
+    "institution": "OH",
+    "state": "Ohio University"
+  },
+  {
+    "institution": "OH",
+    "state": "University of Dayton"
+  },
+  {
+    "institution": "OH",
+    "state": "University of Findlay"
+  },
+  {
+    "institution": "OH",
+    "state": "University of Mount Union"
+  },
+  {
+    "institution": "OH",
+    "state": "University of Toledo"
+  },
+  {
+    "institution": "OH",
+    "state": "Ursuline College"
+  },
+  {
+    "institution": "OK",
+    "state": "Northeastern State University"
+  },
+  {
+    "institution": "OK",
+    "state": "Oklahoma City University"
+  },
+  {
+    "institution": "OK",
+    "state": "Oklahoma State University"
+  },
+  {
+    "institution": "OK",
+    "state": "University of Oklahoma, Oklahoma City"
+  },
+  {
+    "institution": "OK",
+    "state": "University of Oklahoma, Tulsa"
+  },
+  {
+    "institution": "OR",
+    "state": "George Fox University"
+  },
+  {
+    "institution": "OR",
+    "state": "Oregon Health & Science University"
+  },
+  {
+    "institution": "OR",
+    "state": "Pacific University"
+  },
+  {
+    "institution": "PA",
+    "state": "Alvernia University"
+  },
+  {
+    "institution": "PA",
+    "state": "Arcadia University"
+  },
+  {
+    "institution": "PA",
+    "state": "Carlow University"
+  },
+  {
+    "institution": "PA",
+    "state": "Chatham University"
+  },
+  {
+    "institution": "PA",
+    "state": "Delaware Valley University"
+  },
+  {
+    "institution": "PA",
+    "state": "DeSales University"
+  },
+  {
+    "institution": "PA",
+    "state": "Drexel University"
+  },
+  {
+    "institution": "PA",
+    "state": "Duquesne University"
+  },
+  {
+    "institution": "PA",
+    "state": "Elizabethtown College"
+  },
+  {
+    "institution": "PA",
+    "state": "Gannon University"
+  },
+  {
+    "institution": "PA",
+    "state": "King\u2019s College"
+  },
+  {
+    "institution": "PA",
+    "state": "Commonwealth University of Pennsylvania"
+  },
+  {
+    "institution": "PA",
+    "state": "Marywood University"
+  },
+  {
+    "institution": "PA",
+    "state": "Mercyhurst University"
+  },
+  {
+    "institution": "PA",
+    "state": "Misericordia University"
+  },
+  {
+    "institution": "PA",
+    "state": "Penn State University"
+  },
+  {
+    "institution": "PA",
+    "state": "Pennsylvania College of Technology"
+  },
+  {
+    "institution": "PA",
+    "state": "Philadelphia College of Osteopathic Medicine"
+  },
+  {
+    "institution": "PA",
+    "state": "Thomas Jefferson University, East Falls Campus"
+  },
+  {
+    "institution": "PA",
+    "state": "Saint Francis University"
+  },
+  {
+    "institution": "PA",
+    "state": "Saint Joseph\u2019s University"
+  },
+  {
+    "institution": "PA",
+    "state": "Salus University (formerly Pennsylvania College of Optometry)"
+  },
+  {
+    "institution": "PA",
+    "state": "Seton Hill University"
+  },
+  {
+    "institution": "PA",
+    "state": "Slippery Rock University"
+  },
+  {
+    "institution": "PA",
+    "state": "Temple University Lewis Katz School of Medicine"
+  },
+  {
+    "institution": "PA",
+    "state": "Thiel College"
+  },
+  {
+    "institution": "PA",
+    "state": "Thomas Jefferson University, Center City Campus"
+  },
+  {
+    "institution": "PA",
+    "state": "University of Pittsburgh"
+  },
+  {
+    "institution": "PA",
+    "state": "University of Pittsburgh - Hybrid Program"
+  },
+  {
+    "institution": "PA",
+    "state": "West Chester University"
+  },
+  {
+    "institution": "PA",
+    "state": "Widener University"
+  },
+  {
+    "institution": "RI",
+    "state": "Bryant University"
+  },
+  {
+    "institution": "RI",
+    "state": "Johnson & Wales University"
+  },
+  {
+    "institution": "SC",
+    "state": "Charleston Southern University"
+  },
+  {
+    "institution": "SC",
+    "state": "Medical University of South Carolina"
+  },
+  {
+    "institution": "SC",
+    "state": "North Greenville University"
+  },
+  {
+    "institution": "SC",
+    "state": "Presbyterian College"
+  },
+  {
+    "institution": "SC",
+    "state": "University of South Carolina, SOM"
+  },
+  {
+    "institution": "SD",
+    "state": "University of South Dakota"
+  },
+  {
+    "institution": "TN",
+    "state": "Bethel University"
+  },
+  {
+    "institution": "TN",
+    "state": "Lincoln Memorial University"
+  },
+  {
+    "institution": "TN",
+    "state": "Lincoln Memorial University-Knoxville"
+  },
+  {
+    "institution": "TN",
+    "state": "Lipscomb University"
+  },
+  {
+    "institution": "TN",
+    "state": "Meharry Medical College"
+  },
+  {
+    "institution": "TN",
+    "state": "Middle Tennessee State University"
+  },
+  {
+    "institution": "TN",
+    "state": "Milligan University"
+  },
+  {
+    "institution": "TN",
+    "state": "South College \u2013 Knoxville"
+  },
+  {
+    "institution": "TN",
+    "state": "South College \u2013 Nashville"
+  },
+  {
+    "institution": "TN",
+    "state": "Trevecca Nazarene University"
+  },
+  {
+    "institution": "TN",
+    "state": "University of Tennessee Health Science Center (Memphis)"
+  },
+  {
+    "institution": "TX",
+    "state": "Army Medical Center of Excellence"
+  },
+  {
+    "institution": "TX",
+    "state": "Austin College"
+  },
+  {
+    "institution": "TX",
+    "state": "Baylor College of Medicine"
+  },
+  {
+    "institution": "TX",
+    "state": "Baylor University-Waco"
+  },
+  {
+    "institution": "TX",
+    "state": "Franklin Pierce University, Hybrid Program-Round Rock"
+  },
+  {
+    "institution": "TX",
+    "state": "Hardin-Simmons University"
+  },
+  {
+    "institution": "TX",
+    "state": "South University, Austin"
+  },
+  {
+    "institution": "TX",
+    "state": "Tarleton State University"
+  },
+  {
+    "institution": "TX",
+    "state": "Texas Tech University Health Sciences Center"
+  },
+  {
+    "institution": "TX",
+    "state": "University of Mary Hardin-Baylor"
+  },
+  {
+    "institution": "TX",
+    "state": "University of North Texas HS Center Ft Worth"
+  },
+  {
+    "institution": "TX",
+    "state": "University of Texas \u2013 HS Center at San Antonio"
+  },
+  {
+    "institution": "TX",
+    "state": "University of Texas \u2013 Medical Branch at Galveston"
+  },
+  {
+    "institution": "TX",
+    "state": "University of Texas Rio Grande Valley"
+  },
+  {
+    "institution": "TX",
+    "state": "The University of Texas Southwestern Medical Center, Southwestern School of Health Professions"
+  },
+  {
+    "institution": "TX",
+    "state": "West Coast University - Texas"
+  },
+  {
+    "institution": "UT",
+    "state": "Rocky Mountain University of Health Professions"
+  },
+  {
+    "institution": "UT",
+    "state": "University of Utah"
+  },
+  {
+    "institution": "UT",
+    "state": "Utah Valley University"
+  },
+  {
+    "institution": "UT",
+    "state": "Weber State University"
+  },
+  {
+    "institution": "VA",
+    "state": "ECPI University"
+  },
+  {
+    "institution": "VA",
+    "state": "Emory & Henry College"
+  },
+  {
+    "institution": "VA",
+    "state": "James Madison University"
+  },
+  {
+    "institution": "VA",
+    "state": "Macon & Joan Brock Virginia Health Sciences at Old Dominion University"
+  },
+  {
+    "institution": "VA",
+    "state": "Mary Baldwin University (Murphy Deming College of Health Sciences)"
+  },
+  {
+    "institution": "VA",
+    "state": "Radford University"
+  },
+  {
+    "institution": "VA",
+    "state": "Randolph-Macon College"
+  },
+  {
+    "institution": "VA",
+    "state": "Shenandoah University"
+  },
+  {
+    "institution": "VA",
+    "state": "South University, Richmond"
+  },
+  {
+    "institution": "VA",
+    "state": "University of Lynchburg"
+  },
+  {
+    "institution": "WA",
+    "state": "Northwest University"
+  },
+  {
+    "institution": "WA",
+    "state": "University of Washington"
+  },
+  {
+    "institution": "WI",
+    "state": "Carroll University"
+  },
+  {
+    "institution": "WI",
+    "state": "Marquette University"
+  },
+  {
+    "institution": "WI",
+    "state": "University of Wisconsin \u2013 La Crosse"
+  },
+  {
+    "institution": "WI",
+    "state": "University of Wisconsin \u2013 Madison"
+  },
+  {
+    "institution": "WV",
+    "state": "Concord University"
+  },
+  {
+    "institution": "WV",
+    "state": "Marshall University"
+  },
+  {
+    "institution": "WV",
+    "state": "University of Charleston"
+  },
+  {
+    "institution": "WV",
+    "state": "West Liberty University"
+  },
+  {
+    "institution": "WV",
+    "state": "West Virginia University"
+  }
+]

@@ -73,7 +73,7 @@ def scrape_capte_programs():
     Scrape PT program data from CAPTE.
 
     CAPTE publishes program data at:
-    https://www.capteonline.org/about-capte/find-a-pt-or-pta-program
+    https://www.capteonline.org/programs
 
     They also publish aggregate outcomes data annually.
     """
@@ -93,7 +93,7 @@ def scrape_capte_programs():
     # Individual program data may require scraping program detail pages
 
     base_url = "https://www.capteonline.org"
-    search_url = f"{base_url}/about-capte/find-a-pt-or-pta-program"
+    search_url = f"{base_url}/programs"
 
     try:
         response = fetch_page(search_url)
@@ -133,7 +133,7 @@ def scrape_acote_programs():
     """
     Scrape OT program data from ACOTE.
 
-    ACOTE directory: https://acoteonline.org/all-programs/
+    ACOTE directory: https://acoteonline.org/schools/
     """
     print("\n" + "=" * 60)
     print("Scraping ACOTE (OT Programs)...")
@@ -142,7 +142,7 @@ def scrape_acote_programs():
     programs = []
 
     base_url = "https://acoteonline.org"
-    directory_url = f"{base_url}/all-programs/"
+    directory_url = f"{base_url}/schools/"
 
     try:
         response = fetch_page(directory_url)
@@ -183,7 +183,7 @@ def scrape_arcpa_programs():
     """
     Scrape PA program data from ARC-PA.
 
-    ARC-PA program directory: http://www.arc-pa.org/accreditation/accredited-programs/
+    ARC-PA program directory: https://www.arc-pa.org/entry-level-program/currently-accredited-programs/
 
     ARC-PA publishes outcome data including:
     - First-time PANCE pass rates
@@ -197,8 +197,8 @@ def scrape_arcpa_programs():
     programs = []
 
     # ARC-PA has a publicly accessible program directory
-    base_url = "http://www.arc-pa.org"
-    directory_url = f"{base_url}/accreditation/accredited-programs/"
+    base_url = "https://www.arc-pa.org"
+    directory_url = f"{base_url}/entry-level-program/currently-accredited-programs/"
 
     try:
         response = fetch_page(directory_url)
