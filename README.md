@@ -6,6 +6,18 @@ A web-based platform for managing clinical education site data across Clarkson's
 
 https://clinical-placements-app.vercel.app
 
+## Documentation
+
+| Doc | Read it when |
+|---|---|
+| [docs/RUNBOOKS.md](docs/RUNBOOKS.md) | You need to change something. Start here |
+| [docs/DATABASE.md](docs/DATABASE.md) | Schema, design decisions, how to rebuild the DB |
+| [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) | Importing or refreshing data |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Accounts, deploys, and known issues |
+
+New here? Read [docs/OPERATIONS.md](docs/OPERATIONS.md) first — it's the honest
+list of what's missing and what's owned by whom.
+
 ## Tech Stack
 
 | Category | Technology |
@@ -33,7 +45,7 @@ Record counts verified against the live database on 2026-07-15.
 |-------|---------|--------|-------------|
 | HRSA Sites | 74,772 | HRSA | Healthcare facilities with type, beds, FTEs, rural status |
 | Active Sites | 805 | Exxat | Clarkson's current clinical placement sites |
-| Schools | 858 | HRSA | PT/OT/PA programs (655 institutions; one row per program) |
+| Schools | 858 | HRSA | PT/OT/PA programs at 649 institutions / 655 campuses |
 | Post-Secondary Schools | 6,812 | Dept of Education | All US colleges |
 | Military Sites | 824 | DoD | Military bases |
 | Native American Reserves | 693 | Census | Tribal lands |
@@ -71,7 +83,9 @@ Click the compass icon in the top-right, then click anywhere on the map to see:
 ### Prerequisites
 - Node.js 20+
 - npm 9+
-- Supabase project (with tables already populated)
+- A Supabase project. Starting from an empty one? Run
+  [`supabase_schema.sql`](supabase_schema.sql) to create the tables, then load
+  data per [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md).
 
 ### Environment Variables
 
@@ -188,11 +202,14 @@ what does and does not protect these endpoints.
 
 | Issue | Solution |
 |-------|----------|
+| Nothing loads, every query fails | `DATABASE_URL` unset. `src/lib/db.ts` falls back to localhost instead of erroring. |
+| A whole map layer is empty | The route 500'd. Check the dev server log — a `SELECT` naming a column that doesn't exist kills the entire layer, not just that field. See [docs/RUNBOOKS.md](docs/RUNBOOKS.md). |
+| Map has no layer toggles | The `layers` table is empty. It's config, not data — populate it. |
 | Map tiles not loading | Check internet connection. Tiles come from OpenStreetMap CDN. |
-| AI gives wrong answers | Check `src/lib/agent-system-prompt.ts`. Add more example queries. |
+| AI gives wrong answers | Check `src/lib/agent-system-prompt.ts`. It must match the real schema. Add example queries. |
 | Choropleth not showing | Check browser console. TopoJSON files come from `cdn.jsdelivr.net`. |
-| Missing FIPS codes | Import script zero-pads FIPS. Missing data shows as gray. |
-| HRSA site missing | Re-run `import_data_supabase.py` with updated HRSA export. |
+| Coverage blank for AL–CT | FIPS leading-zero loss. Import scripts zero-pad; see [docs/DATABASE.md](docs/DATABASE.md). |
+| Site went down for no reason | Supabase free tier paused. Check the keepalive workflow in the Actions tab. |
 
 ## Available Scripts
 
