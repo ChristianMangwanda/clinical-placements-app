@@ -75,12 +75,17 @@ Click the compass icon in the top-right, then click anywhere on the map to see:
 
 ### Environment Variables
 
-Create `.env.local`:
+[`.env.example`](.env.example) is the authoritative list — copy it and fill in
+the values:
+
+```bash
+cp .env.example .env.local
 ```
-DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
-ANTHROPIC_API_KEY=your_claude_api_key
-BEA_API_KEY=your_bea_api_key  # For state economic data refresh
-```
+
+Five variables are needed to run the app (`DATABASE_URL`, `ANTHROPIC_API_KEY`,
+`INTERNAL_API_SECRET`, `NEXT_PUBLIC_API_SECRET`, `ALLOWED_DOMAINS`) plus
+`BEA_API_KEY` for the economic data import. Each is documented inline in that
+file. Set the same variables in the Vercel dashboard for production.
 
 ### Install & Run
 ```bash
