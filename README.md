@@ -1,6 +1,6 @@
 # Clinical Placements Database — Clarkson University
 
-A web-based platform for managing clinical education site data across Clarkson's PT, OT, and PA programs. Features an interactive map with 90K+ geocoded healthcare facilities, an AI-powered query engine, demographic analysis layers, and economic overlays.
+A web-based platform for managing clinical education site data across Clarkson's PT, OT, and PA programs. Features an interactive map with 74K+ geocoded healthcare facilities, an AI-powered query engine, demographic analysis layers, and economic overlays.
 
 ## Live App
 
@@ -11,8 +11,8 @@ https://clinical-placements-app.vercel.app
 | Category | Technology |
 |----------|------------|
 | Frontend | Next.js 16 (App Router), React 19, TypeScript |
-| Map | Leaflet / react-leaflet with marker clustering |
-| Database | PostgreSQL via Supabase |
+| Map | Leaflet / react-leaflet |
+| Database | PostgreSQL via Supabase (direct `pg` connection, not supabase-js) |
 | AI Engine | Claude API (text-to-SQL generation) |
 | Hosting | Vercel |
 | Testing | Jest + React Testing Library |
@@ -21,20 +21,22 @@ https://clinical-placements-app.vercel.app
 ## Features
 
 ### Interactive Map
-- Leaflet-based map with marker clustering for 90K+ sites
-- Viewport-based data loading for optimal performance
+- Leaflet-based map. Markers load per viewport (map bounds are passed to
+  `/api/sites`, capped at 5,000 rows per request) rather than being clustered
 - Click markers to view detailed site information
 - Fly-to navigation from table and AI results
 
 ### Multi-Layer Data Support
+Record counts verified against the live database on 2026-07-15.
+
 | Layer | Records | Source | Description |
 |-------|---------|--------|-------------|
-| HRSA Sites | ~81,683 | HRSA | Healthcare facilities with type, beds, FTEs, rural status |
-| Active Sites | ~830 | Exxat | Clarkson's current clinical placement sites |
-| Schools | ~858 | HRSA | PT/OT/PA programs by institution |
-| Post-Secondary Schools | ~6,812 | Dept of Education | All US colleges |
-| Military Sites | ~824 | DoD | Military bases |
-| Native American Reserves | ~693 | Census | Tribal lands |
+| HRSA Sites | 74,772 | HRSA | Healthcare facilities with type, beds, FTEs, rural status |
+| Active Sites | 805 | Exxat | Clarkson's current clinical placement sites |
+| Schools | 858 | HRSA | PT/OT/PA programs (655 institutions; one row per program) |
+| Post-Secondary Schools | 6,812 | Dept of Education | All US colleges |
+| Military Sites | 824 | DoD | Military bases |
+| Native American Reserves | 693 | Census | Tribal lands |
 
 ### Analysis Layers (Choropleth)
 Toggle these in the sidebar under "Analysis Layers" (only one active at a time):
@@ -97,19 +99,22 @@ Push to `main` branch — Vercel auto-deploys.
 
 ## Database Tables
 
+Counts verified against the live database on 2026-07-15. See
+[docs/DATABASE.md](docs/DATABASE.md) for column-level schema and methodology.
+
 | Table | Records | Description |
 |-------|---------|-------------|
-| hrsa_sites | ~81,683 | Healthcare facilities with category, beds, FTEs, rural status |
-| active_sites | ~830 | Clarkson's clinical placement sites |
-| schools | ~858 | PT/OT/PA programs (one row per program) |
-| post_secondary_schools | ~6,812 | All US post-secondary institutions |
-| military_sites | ~824 | Military bases and installations |
-| native_american_reserves | ~693 | Tribal reservation locations |
-| county_population | ~3,144 | County population with YoY change |
+| hrsa_sites | 74,772 | Healthcare facilities with category, beds, FTEs, rural status |
+| active_sites | 805 | Clarkson's clinical placement sites |
+| schools | 858 | PT/OT/PA programs (one row per program) |
+| post_secondary_schools | 6,812 | All US post-secondary institutions |
+| military_sites | 824 | Military bases and installations |
+| native_american_reserves | 693 | Tribal reservation locations |
+| county_population | 3,144 | County population with YoY change |
 | county_coverage | VIEW | Population / facility ratio by county |
-| state_economic | ~51 | State GDP + healthcare employment |
-| layers | ~9 | Map layer metadata |
-| notes | Variable | User annotations for sites |
+| state_economic | 51 | State GDP + healthcare employment |
+| layers | 10 | Map layer metadata |
+| notes | 0 | Unused. Table exists; no code reads or writes it |
 
 ## Architecture
 
@@ -120,12 +125,9 @@ src/
 │   │   ├── chat/      # AI chatbot endpoint
 │   │   ├── economic/  # State economic data
 │   │   ├── layers/    # Layer metadata
-│   │   ├── notes/     # Notes CRUD
 │   │   ├── population/# County population data
-│   │   ├── schools/   # School filtering
 │   │   ├── search/    # Cross-layer search
-│   │   ├── sites/     # GeoJSON site data
-│   │   └── stats/     # Dashboard statistics
+│   │   └── sites/     # GeoJSON site data (all map layers)
 │   ├── dashboard/     # Main app page
 │   └── error.tsx      # Global error boundary
 ├── components/
@@ -150,24 +152,32 @@ src/
 
 ## Data Refresh
 
-Data is imported once and refreshed periodically. Scripts are in the project root:
+Data is imported once and refreshed periodically. Scripts live in
+[`scripts/`](scripts/) — see [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) for
+source-data provenance and per-script detail.
 
 | Script | Data Source | Frequency |
 |--------|-------------|-----------|
 | `import_data_supabase.py` | HRSA export + Excel | As needed |
 | `import_active_sites.py` | Exxat export | Semester |
 | `import_state_economic.py` | BEA + BLS APIs | Annually (April) |
+| `import_hrsa_v3.py` | HRSA Excel export | As needed |
+| `import_county_population.py` | Census county estimates | As needed |
 
 ### Refresh Economic Data
 ```bash
 export DATABASE_URL="your_connection_string"
 export BEA_API_KEY="your_bea_key"
-python3 import_state_economic.py
+python3 scripts/import_state_economic.py
 ```
 
-## Adding a New User
+## Access Control
 
-This app doesn't have user authentication (it's an internal tool). Access is controlled at the network level.
+**This app has no authentication and is publicly reachable.** Anyone with the
+Vercel URL can use it, including the AI chat, which bills a paid Anthropic API
+key. Commit `812f5a9` disabled the domain restriction that previously limited
+origins. See [docs/OPERATIONS.md](docs/OPERATIONS.md) for the full picture of
+what does and does not protect these endpoints.
 
 ## Common Issues
 
