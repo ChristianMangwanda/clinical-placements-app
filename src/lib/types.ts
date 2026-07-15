@@ -12,88 +12,9 @@ export interface Layer {
   created_at: Date;
 }
 
-// HRSA clinical sites
-export interface HrsaSite {
-  id: number;
-  site_name: string;
-  state: string;
-  longitude: number;
-  latitude: number;
-  source: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-// Schools with PT/OT/PA programs
+// PT/OT/PA programs. See docs/DATABASE.md for the full table schemas —
+// the API routes declare their own row shapes for the columns they select.
 export type Profession = "PT" | "OT" | "PA";
-
-export interface School {
-  id: number;
-  program_row_id: number;
-  institution_name: string;
-  campus_name: string | null;
-  state: string;
-  profession: Profession;
-  program_name: string;
-  accreditation_body: string;
-  accreditation_status: string;
-  address: string;
-  longitude: number;
-  latitude: number;
-  source: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-// Post-secondary schools (all institutions)
-export interface PostSecondarySchool {
-  id: number;
-  original_id: number;
-  institution_name: string;
-  state: string;
-  latitude: number;
-  longitude: number;
-  source: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-// Military installations
-export interface MilitarySite {
-  id: number;
-  name: string;
-  state: string;
-  component: string;
-  longitude: number;
-  latitude: number;
-  source: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-// Native American reserves
-export interface NativeAmericanReserve {
-  id: number;
-  name: string;
-  state: string;
-  latitude: number;
-  longitude: number;
-  source: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-// Coordinator notes/annotations
-export interface Note {
-  id: number;
-  layer_key: string | null;
-  entity_id: number | null;
-  state: string | null;
-  note_text: string;
-  author: string | null;
-  created_at: Date;
-  updated_at: Date;
-}
 
 // GeoJSON types for map data
 export interface GeoJSONPoint {
@@ -124,13 +45,6 @@ export interface MapBounds {
   maxLng: number;
 }
 
-// API response types
-export interface ApiResponse<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
-
 // Map point for AI query result highlights
 export interface MapPoint {
   lat: number;
@@ -151,13 +65,6 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
-// Filter state
-export interface FilterState {
-  state: string | null;
-  profession: Profession | null;
-  accreditationStatus: string | null;
-}
-
 // Layer visibility state
 export type LayerVisibility = Record<string, boolean>;
 
@@ -169,17 +76,6 @@ export interface SearchResult {
   state: string;
   latitude: number;
   longitude: number;
-}
-
-// State summary statistics
-export interface StateSummary {
-  state: string;
-  hrsa_count: number;
-  school_count: number;
-  post_secondary_count: number;
-  military_count: number;
-  native_american_count: number;
-  total_count: number;
 }
 
 // HRSA Site Categories for filter dropdown

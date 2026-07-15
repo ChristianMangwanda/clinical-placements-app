@@ -63,42 +63,6 @@ export async function queryOne<T extends QueryResultRow = QueryResultRow>(
   return rows.length > 0 ? rows[0] : null;
 }
 
-// Result type for INSERT/UPDATE/DELETE operations
-export interface ExecuteResult {
-  rowCount: number | null;
-  command: string;
-}
-
-// Helper for INSERT/UPDATE/DELETE operations
-export async function execute(
-  sql: string,
-  params?: unknown[]
-): Promise<ExecuteResult> {
-  const client = await getPool().connect();
-  try {
-    const result = await client.query(sql, params);
-    return {
-      rowCount: result.rowCount,
-      command: result.command,
-    };
-  } finally {
-    client.release();
-  }
-}
-
-// Test database connection
-export async function testConnection(): Promise<boolean> {
-  try {
-    const client = await getPool().connect();
-    await client.query("SELECT 1");
-    client.release();
-    return true;
-  } catch (error) {
-    console.error("Database connection failed:", error);
-    return false;
-  }
-}
-
 // Escape identifiers (table/column names) for dynamic queries
 // PostgreSQL uses double quotes for identifiers
 export function escapeId(identifier: string): string {

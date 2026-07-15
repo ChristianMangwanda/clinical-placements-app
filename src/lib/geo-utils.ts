@@ -51,19 +51,6 @@ export function milesToMeters(miles: number): number {
 }
 
 /**
- * Get the ring (30/60/90 min) that a distance falls into.
- * Returns null if beyond 90 minutes.
- */
-export function getDistanceRing(distanceMiles: number): typeof RADIUS_CONFIG[number] | null {
-  for (const ring of RADIUS_CONFIG) {
-    if (distanceMiles <= ring.miles) {
-      return ring;
-    }
-  }
-  return null;
-}
-
-/**
  * Bucket sites by distance rings.
  */
 export interface SiteWithDistance {
