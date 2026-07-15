@@ -54,7 +54,8 @@ describe("DataTable", () => {
         layerColors={mockLayerColors}
       />
     );
-    expect(screen.getByText("Loading data...")).toBeInTheDocument();
+    // The loading state renders skeleton rows, not a text message.
+    expect(screen.getAllByTestId("skeleton-row")).toHaveLength(5);
   });
 
   it("shows empty state message when no data", () => {
@@ -142,16 +143,15 @@ describe("DataTable", () => {
       />
     );
 
-    // Find and click the collapse button (the ChevronDown at the end)
-    const collapseButton = screen.getAllByRole("button").find((btn) =>
-      btn.querySelector("svg")
-    );
+    expect(screen.getByPlaceholderText("Search...")).toBeInTheDocument();
 
-    if (collapseButton) {
-      fireEvent.click(collapseButton);
-      // Search input should be hidden when collapsed
-      expect(screen.queryByPlaceholderText("Search...")).not.toBeInTheDocument();
-    }
+    fireEvent.click(screen.getByRole("button", { name: "Collapse table" }));
+
+    // Collapsing hides the search input and the table body.
+    expect(screen.queryByPlaceholderText("Search...")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Expand table" }));
+    expect(screen.getByPlaceholderText("Search...")).toBeInTheDocument();
   });
 
   it("sorts by name when name header clicked", () => {

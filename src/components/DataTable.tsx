@@ -61,7 +61,7 @@ function SortIcon({
 // Skeleton row component
 function SkeletonRow() {
   return (
-    <tr className="border-b border-white/5">
+    <tr className="border-b border-white/5" data-testid="skeleton-row">
       <td className="px-4 py-3">
         <div className="skeleton h-4 w-48 rounded" />
       </td>
@@ -378,6 +378,8 @@ export default function DataTable({
           {/* Collapse toggle */}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
+            aria-label={isCollapsed ? "Expand table" : "Collapse table"}
+            aria-expanded={!isCollapsed}
             className="
               p-1.5 rounded-lg text-text-muted
               hover:text-white hover:bg-white/10

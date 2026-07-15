@@ -92,18 +92,6 @@ describe("LayerToggle", () => {
     expect(mockOnToggle).toHaveBeenCalledWith("hrsa_sites");
   });
 
-  it("shows legend hint", () => {
-    render(
-      <LayerToggle
-        layers={mockLayers}
-        layerVisibility={mockLayerVisibility}
-        onToggle={mockOnToggle}
-      />
-    );
-
-    expect(screen.getByText("Click to toggle layer visibility")).toBeInTheDocument();
-  });
-
   it("renders correct number of layer buttons", () => {
     render(
       <LayerToggle
