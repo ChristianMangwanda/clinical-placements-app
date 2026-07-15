@@ -6,7 +6,6 @@
 import {
   haversineDistanceMiles,
   milesToMeters,
-  getDistanceRing,
   bucketSitesByDistance,
   RADIUS_CONFIG,
 } from '@/lib/geo-utils';
@@ -87,34 +86,6 @@ describe('milesToMeters', () => {
 
   it('converts 10 miles to ~16093 meters', () => {
     expect(milesToMeters(10)).toBeCloseTo(16093.44, 1);
-  });
-});
-
-describe('getDistanceRing', () => {
-  it('returns 30 min ring for distances <= 20 miles', () => {
-    const ring = getDistanceRing(15);
-    expect(ring).not.toBeNull();
-    expect(ring?.minutes).toBe(30);
-  });
-
-  it('returns 30 min ring for exactly 20 miles', () => {
-    const ring = getDistanceRing(20);
-    expect(ring?.minutes).toBe(30);
-  });
-
-  it('returns 60 min ring for distances 21-45 miles', () => {
-    const ring = getDistanceRing(30);
-    expect(ring?.minutes).toBe(60);
-  });
-
-  it('returns 90 min ring for distances 46-70 miles', () => {
-    const ring = getDistanceRing(50);
-    expect(ring?.minutes).toBe(90);
-  });
-
-  it('returns null for distances > 70 miles', () => {
-    const ring = getDistanceRing(100);
-    expect(ring).toBeNull();
   });
 });
 

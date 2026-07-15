@@ -1,18 +1,30 @@
 # Clinical Placements Database — Clarkson University
 
-A web-based platform for managing clinical education site data across Clarkson's PT, OT, and PA programs. Features an interactive map with 90K+ geocoded healthcare facilities, an AI-powered query engine, demographic analysis layers, and economic overlays.
+A web-based platform for managing clinical education site data across Clarkson's PT, OT, and PA programs. Features an interactive map with 74K+ geocoded healthcare facilities, an AI-powered query engine, demographic analysis layers, and economic overlays.
 
 ## Live App
 
 https://clinical-placements-app.vercel.app
+
+## Documentation
+
+| Doc | Read it when |
+|---|---|
+| [docs/RUNBOOKS.md](docs/RUNBOOKS.md) | You need to change something. Start here |
+| [docs/DATABASE.md](docs/DATABASE.md) | Schema, design decisions, how to rebuild the DB |
+| [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) | Importing or refreshing data |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Accounts, deploys, and known issues |
+
+New here? Read [docs/OPERATIONS.md](docs/OPERATIONS.md) first — it's the honest
+list of what's missing and what's owned by whom.
 
 ## Tech Stack
 
 | Category | Technology |
 |----------|------------|
 | Frontend | Next.js 16 (App Router), React 19, TypeScript |
-| Map | Leaflet / react-leaflet with marker clustering |
-| Database | PostgreSQL via Supabase |
+| Map | Leaflet / react-leaflet |
+| Database | PostgreSQL via Supabase (direct `pg` connection, not supabase-js) |
 | AI Engine | Claude API (text-to-SQL generation) |
 | Hosting | Vercel |
 | Testing | Jest + React Testing Library |
@@ -21,20 +33,22 @@ https://clinical-placements-app.vercel.app
 ## Features
 
 ### Interactive Map
-- Leaflet-based map with marker clustering for 90K+ sites
-- Viewport-based data loading for optimal performance
+- Leaflet-based map. Markers load per viewport (map bounds are passed to
+  `/api/sites`, capped at 5,000 rows per request) rather than being clustered
 - Click markers to view detailed site information
 - Fly-to navigation from table and AI results
 
 ### Multi-Layer Data Support
+Record counts verified against the live database on 2026-07-15.
+
 | Layer | Records | Source | Description |
 |-------|---------|--------|-------------|
-| HRSA Sites | ~81,683 | HRSA | Healthcare facilities with type, beds, FTEs, rural status |
-| Active Sites | ~830 | Exxat | Clarkson's current clinical placement sites |
-| Schools | ~858 | HRSA | PT/OT/PA programs by institution |
-| Post-Secondary Schools | ~6,812 | Dept of Education | All US colleges |
-| Military Sites | ~824 | DoD | Military bases |
-| Native American Reserves | ~693 | Census | Tribal lands |
+| HRSA Sites | 74,772 | HRSA | Healthcare facilities with type, beds, FTEs, rural status |
+| Active Sites | 805 | Exxat | Clarkson's current clinical placement sites |
+| Schools | 858 | HRSA | PT/OT/PA programs at 649 institutions / 655 campuses |
+| Post-Secondary Schools | 6,812 | Dept of Education | All US colleges |
+| Military Sites | 824 | DoD | Military bases |
+| Native American Reserves | 693 | Census | Tribal lands |
 
 ### Analysis Layers (Choropleth)
 Toggle these in the sidebar under "Analysis Layers" (only one active at a time):
@@ -69,16 +83,23 @@ Click the compass icon in the top-right, then click anywhere on the map to see:
 ### Prerequisites
 - Node.js 20+
 - npm 9+
-- Supabase project (with tables already populated)
+- A Supabase project. Starting from an empty one? Run
+  [`supabase_schema.sql`](supabase_schema.sql) to create the tables, then load
+  data per [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md).
 
 ### Environment Variables
 
-Create `.env.local`:
+[`.env.example`](.env.example) is the authoritative list — copy it and fill in
+the values:
+
+```bash
+cp .env.example .env.local
 ```
-DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
-ANTHROPIC_API_KEY=your_claude_api_key
-BEA_API_KEY=your_bea_api_key  # For state economic data refresh
-```
+
+Five variables are needed to run the app (`DATABASE_URL`, `ANTHROPIC_API_KEY`,
+`INTERNAL_API_SECRET`, `NEXT_PUBLIC_API_SECRET`, `ALLOWED_DOMAINS`) plus
+`BEA_API_KEY` for the economic data import. Each is documented inline in that
+file. Set the same variables in the Vercel dashboard for production.
 
 ### Install & Run
 ```bash
@@ -97,19 +118,22 @@ Push to `main` branch — Vercel auto-deploys.
 
 ## Database Tables
 
+Counts verified against the live database on 2026-07-15. See
+[docs/DATABASE.md](docs/DATABASE.md) for column-level schema and methodology.
+
 | Table | Records | Description |
 |-------|---------|-------------|
-| hrsa_sites | ~81,683 | Healthcare facilities with category, beds, FTEs, rural status |
-| active_sites | ~830 | Clarkson's clinical placement sites |
-| schools | ~858 | PT/OT/PA programs (one row per program) |
-| post_secondary_schools | ~6,812 | All US post-secondary institutions |
-| military_sites | ~824 | Military bases and installations |
-| native_american_reserves | ~693 | Tribal reservation locations |
-| county_population | ~3,144 | County population with YoY change |
+| hrsa_sites | 74,772 | Healthcare facilities with category, beds, FTEs, rural status |
+| active_sites | 805 | Clarkson's clinical placement sites |
+| schools | 858 | PT/OT/PA programs (one row per program) |
+| post_secondary_schools | 6,812 | All US post-secondary institutions |
+| military_sites | 824 | Military bases and installations |
+| native_american_reserves | 693 | Tribal reservation locations |
+| county_population | 3,144 | County population with YoY change |
 | county_coverage | VIEW | Population / facility ratio by county |
-| state_economic | ~51 | State GDP + healthcare employment |
-| layers | ~9 | Map layer metadata |
-| notes | Variable | User annotations for sites |
+| state_economic | 51 | State GDP + healthcare employment |
+| layers | 10 | Map layer metadata |
+| notes | 0 | Unused. Table exists; no code reads or writes it |
 
 ## Architecture
 
@@ -120,12 +144,9 @@ src/
 │   │   ├── chat/      # AI chatbot endpoint
 │   │   ├── economic/  # State economic data
 │   │   ├── layers/    # Layer metadata
-│   │   ├── notes/     # Notes CRUD
 │   │   ├── population/# County population data
-│   │   ├── schools/   # School filtering
 │   │   ├── search/    # Cross-layer search
-│   │   ├── sites/     # GeoJSON site data
-│   │   └── stats/     # Dashboard statistics
+│   │   └── sites/     # GeoJSON site data (all map layers)
 │   ├── dashboard/     # Main app page
 │   └── error.tsx      # Global error boundary
 ├── components/
@@ -150,34 +171,45 @@ src/
 
 ## Data Refresh
 
-Data is imported once and refreshed periodically. Scripts are in the project root:
+Data is imported once and refreshed periodically. Scripts live in
+[`scripts/`](scripts/) — see [docs/DATA_PIPELINE.md](docs/DATA_PIPELINE.md) for
+source-data provenance and per-script detail.
 
 | Script | Data Source | Frequency |
 |--------|-------------|-----------|
 | `import_data_supabase.py` | HRSA export + Excel | As needed |
 | `import_active_sites.py` | Exxat export | Semester |
 | `import_state_economic.py` | BEA + BLS APIs | Annually (April) |
+| `import_hrsa_v3.py` | HRSA Excel export | As needed |
+| `import_county_population.py` | Census county estimates | As needed |
 
 ### Refresh Economic Data
 ```bash
 export DATABASE_URL="your_connection_string"
 export BEA_API_KEY="your_bea_key"
-python3 import_state_economic.py
+python3 scripts/import_state_economic.py
 ```
 
-## Adding a New User
+## Access Control
 
-This app doesn't have user authentication (it's an internal tool). Access is controlled at the network level.
+**This app has no authentication and is publicly reachable.** Anyone with the
+Vercel URL can use it, including the AI chat, which bills a paid Anthropic API
+key. Commit `812f5a9` disabled the domain restriction that previously limited
+origins. See [docs/OPERATIONS.md](docs/OPERATIONS.md) for the full picture of
+what does and does not protect these endpoints.
 
 ## Common Issues
 
 | Issue | Solution |
 |-------|----------|
+| Nothing loads, every query fails | `DATABASE_URL` unset. `src/lib/db.ts` falls back to localhost instead of erroring. |
+| A whole map layer is empty | The route 500'd. Check the dev server log — a `SELECT` naming a column that doesn't exist kills the entire layer, not just that field. See [docs/RUNBOOKS.md](docs/RUNBOOKS.md). |
+| Map has no layer toggles | The `layers` table is empty. It's config, not data — populate it. |
 | Map tiles not loading | Check internet connection. Tiles come from OpenStreetMap CDN. |
-| AI gives wrong answers | Check `src/lib/agent-system-prompt.ts`. Add more example queries. |
+| AI gives wrong answers | Check `src/lib/agent-system-prompt.ts`. It must match the real schema. Add example queries. |
 | Choropleth not showing | Check browser console. TopoJSON files come from `cdn.jsdelivr.net`. |
-| Missing FIPS codes | Import script zero-pads FIPS. Missing data shows as gray. |
-| HRSA site missing | Re-run `import_data_supabase.py` with updated HRSA export. |
+| Coverage blank for AL–CT | FIPS leading-zero loss. Import scripts zero-pad; see [docs/DATABASE.md](docs/DATABASE.md). |
+| Site went down for no reason | Supabase free tier paused. Check the keepalive workflow in the Actions tab. |
 
 ## Available Scripts
 

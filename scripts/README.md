@@ -2,11 +2,18 @@
 
 Python scripts for importing and refreshing data in the Clinical Placements Database.
 
+> Full pipeline documentation — source provenance, where to get the input files,
+> refresh cadence — is in [../docs/DATA_PIPELINE.md](../docs/DATA_PIPELINE.md).
+> This file is the quick reference.
+
 ## Prerequisites
 
 ```bash
 pip install psycopg2-binary pandas openpyxl requests
 ```
+
+Every script reads `DATABASE_URL` from the environment and exits if it is unset.
+None of them contain credentials; keep it that way.
 
 ## Scripts
 
@@ -17,10 +24,12 @@ Imports HRSA sites, schools, military sites, and Native American reserves from E
 **Usage:**
 ```bash
 export DATABASE_URL="postgresql://..."
-python import_data_supabase.py
+python3 import_data_supabase.py
 ```
 
-**Input:** `TRIAL_2.xlsx` (HRSA export with multiple sheets)
+**Input:** `TRIAL_2.xlsx` (HRSA export with multiple sheets). Expected one level
+above `scripts/`; override with the `TRIAL_2_XLSX` environment variable. The
+file is not in the repo — see [../docs/DATA_PIPELINE.md](../docs/DATA_PIPELINE.md).
 
 ---
 
@@ -31,7 +40,7 @@ Imports Clarkson's active clinical placement sites from Exxat export.
 **Usage:**
 ```bash
 export DATABASE_URL="postgresql://..."
-python import_active_sites.py
+python3 import_active_sites.py
 ```
 
 **Input:** CSV/Excel file from Exxat
@@ -50,7 +59,7 @@ Fetches state-level economic data from federal APIs:
 ```bash
 export DATABASE_URL="postgresql://..."
 export BEA_API_KEY="your_api_key"
-python import_state_economic.py
+python3 import_state_economic.py
 ```
 
 **Frequency:** Run annually in April when federal data is refreshed.

@@ -16,39 +16,21 @@ import pandas as pd
 import psycopg2
 from psycopg2.extras import execute_values
 
-# Supabase connection configuration
-# You can use either DATABASE_URL or explicit parameters
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
-# Explicit connection parameters (fallback if DATABASE_URL doesn't work)
-DB_CONFIG = {
-    'host': 'aws-0-us-west-2.pooler.supabase.com',
-    'port': 6543,
-    'database': 'postgres',
-    'user': 'postgres.cmvhimireghzpyzxzyjs',
-    'password': '8WYrP30ck9k6Vmw3',
-    'sslmode': 'require'
-}
-
-# Path to Excel file
-EXCEL_FILE = os.path.join(os.path.dirname(__file__), '..', 'TRIAL_2.xlsx')
-if not os.path.exists(EXCEL_FILE):
-    EXCEL_FILE = os.path.join(os.path.dirname(__file__), 'TRIAL_2.xlsx')
-if not os.path.exists(EXCEL_FILE):
-    EXCEL_FILE = '/Users/christianmangwanda/Desktop/Php/TRIAL_2.xlsx'
+# Path to Excel file. Override with TRIAL_2_XLSX if it lives elsewhere;
+# see docs/DATA_PIPELINE.md for where to get it.
+EXCEL_FILE = os.environ.get('TRIAL_2_XLSX') or os.path.join(
+    os.path.dirname(__file__), '..', 'TRIAL_2.xlsx')
 
 def get_connection():
-    """Create database connection."""
-    # Try explicit parameters first (more reliable)
-    try:
-        print(f"  Trying pooler connection: {DB_CONFIG['host']}:{DB_CONFIG['port']}...")
-        return psycopg2.connect(**DB_CONFIG)
-    except Exception as e:
-        print(f"  Pooler connection failed: {e}")
-        if DATABASE_URL:
-            print(f"  Trying DATABASE_URL...")
-            return psycopg2.connect(DATABASE_URL)
-        raise
+    """Create database connection from DATABASE_URL."""
+    if not DATABASE_URL:
+        sys.exit(
+            "ERROR: DATABASE_URL environment variable not set.\n"
+            "  export DATABASE_URL='postgresql://...'  # see .env.example"
+        )
+    return psycopg2.connect(DATABASE_URL)
 
 def clean_value(val):
     """Clean a value for database insertion."""

@@ -1200,11 +1200,11 @@ export default function LandingPage() {
                   <div className="feature-number">02</div>
                   <h3>Searchable Site Database</h3>
                   <p>
-                    Filter by state, city, program type, capacity, specialties,
-                    and more. Every site record includes contacts, affiliation
-                    agreements, and utilization history.
+                    Filter by state, profession, and clinic category across
+                    74,000+ HRSA facilities. Records include location, site
+                    type, bed counts, staffing FTEs, and rural status.
                   </p>
-                  <span className="feature-tag">MySQL Database</span>
+                  <span className="feature-tag">PostgreSQL Database</span>
                 </div>
 
                 <div className="feature-card reveal">
