@@ -80,6 +80,23 @@ If it's unset, `src/lib/db.ts` falls back to `localhost:5432` rather than
 erroring. The app boots and then every query fails. Check this first when
 nothing loads.
 
+### `npm run lint` fails
+
+5 errors and 7 warnings, all pre-existing and none of them cosmetic:
+
+| Where | Rule |
+|---|---|
+| `src/hooks/useFavorites.ts:26` | `react-hooks/set-state-in-effect` |
+| `src/components/RadiusOverlay.tsx:76,132` | `react-hooks/refs` |
+| `src/components/DataTable.tsx:215` | `react-hooks/preserve-manual-memoization` |
+| `src/app/error.tsx:66` | `react/no-unescaped-entities` |
+
+These are real React correctness smells, not style nits, which is why they
+weren't blanket-fixed during the July 2026 cleanup — each needs its behaviour
+reasoned about, and a careless fix could change how favourites or the radius
+tool behave. Worth clearing one at a time with the app open in front of you.
+The build does not run ESLint, so these never block a deploy.
+
 ### No API route test coverage
 
 The Jest suite covers the SQL validator, the distance math and some components.
