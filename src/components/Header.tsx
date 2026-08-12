@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Database, ExternalLink } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Database } from "lucide-react";
 
 export default function Header() {
   return (
@@ -30,13 +31,13 @@ export default function Header() {
         <span className="text-xs text-text-muted hidden md:block">
           PT · OT · PA Programs
         </span>
-        <a
-          href="#"
+        <Link
+          href="/help"
           className="text-sm text-text-light hover:text-gold transition-colors flex items-center gap-1"
         >
           Help
-          <ExternalLink className="w-3 h-3" />
-        </a>
+          <BookOpen className="w-3.5 h-3.5" />
+        </Link>
       </nav>
     </header>
   );
